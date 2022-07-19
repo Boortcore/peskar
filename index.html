@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Пескарь</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         .content {
             display: flex;
@@ -42,7 +43,6 @@
         return Math.floor(diff / 1000 / 60 / 60 / 24);
     }
 
-    const currentDate = new Date();
     const workingDayNumber = getDayNumberOfYear(new Date(2022, 6, 4));
     const workingNightNumber = getDayNumberOfYear(new Date(2022, 6, 5));
 
@@ -52,7 +52,6 @@
     const getWorkingInfo = date => {
         const chosenDay = getDayNumberOfYear(date);
         return {
-            date,
             isDayWorking: isDayWorking(chosenDay),
             isNightWorking: isNightWorking(chosenDay),
             isFirstDayOff: isFirstDayOff(chosenDay)
@@ -87,6 +86,7 @@
     const changeCalendarHandler = e => {
         setInfo(e.target.value)
     }
+
     const setInfo = value => {
         const date = new Date(value);
         const data = getContentData(date);
@@ -95,6 +95,7 @@
 
     calendarElement.valueAsDate = new Date();
     setInfo(new Date());
+
     calendarElement.addEventListener('change', changeCalendarHandler);
 </script>
 </body>
