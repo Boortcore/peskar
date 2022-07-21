@@ -36,6 +36,21 @@
     <div class="js-current-day-info current-day-info"></div>
 </form>
 <script>
+
+    function padTo2Digits(num) {
+        return num.toString().padStart(2, '0');
+    }
+
+    function formatDate(date) {
+        return (
+            [
+                date.getFullYear(),
+                padTo2Digits(date.getMonth() + 1),
+                padTo2Digits(date.getDate()),
+            ].join('-')
+        );
+    }
+
     const startedTime = +new Date(2022, 0, 1);
 
     const getDayNumberOfYear = date => {
@@ -43,8 +58,8 @@
         return Math.floor(diff / 1000 / 60 / 60 / 24);
     }
 
-    const workingDayNumber = getDayNumberOfYear(new Date(2022, 19, 4));
-    const workingNightNumber = getDayNumberOfYear(new Date(2022, 20, 5));
+    const workingDayNumber = getDayNumberOfYear(new Date(2022, 6, 20, 0, 0, 0, 0));
+    const workingNightNumber = getDayNumberOfYear(new Date(2022, 6, 21, 0, 0, 0, 0));
 
     const calendarElement = document.querySelector('.js-calendar');
     const currentDayInfoContainer = document.querySelector('.js-current-day-info');
@@ -64,9 +79,9 @@
         if (isDayWorking) {
             return text + ' дневная смена. Завтра в ночь, потом два выходных.'
         } else if (isNightWorking) {
-            return text + ' ночная смена. Потом два выходных'
+            return text + ' ночная смена. Потом два выходных.'
         } else if (isFirstDayOff) {
-            return text + ' первый выходной. Завтра ещё один'
+            return text + ' первый выходной. Завтра ещё один.'
         } else {
             return text + ' второй выходной. Завтра в день на работу.'
         }
@@ -93,8 +108,10 @@
         currentDayInfoContainer.innerHTML = data;
     }
 
-    calendarElement.valueAsDate = new Date();
-    setInfo(new Date());
+    const dateString = formatDate(new Date());
+    const currentDate = new Date(dateString)
+    calendarElement.value = formatDate(currentDate);
+    setInfo(currentDate);
 
     calendarElement.addEventListener('change', changeCalendarHandler);
 </script>
