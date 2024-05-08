@@ -23,11 +23,16 @@
     padding-left: 5px;
     padding-right: 5px;
 }
-.current-day-info {
+.chosen-day-info {
     border: 3px solid gray;
     padding: 10px 15px;
+    margin-bottom: 10px;
 }
 .fieldset {
     border: 3px solid gray;
     margin-bottom: 20px;
+}
+
+.hidden-element {
+    display: none;
 }

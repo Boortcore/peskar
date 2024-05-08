@@ -29,29 +29,68 @@ var App = /*#__PURE__*/function () {
     _classCallCheck(this, App);
     this.view = (0,_helpers__WEBPACK_IMPORTED_MODULE_0__.createElement)(_templates__WEBPACK_IMPORTED_MODULE_2__.appTemplate);
     this.calendarElement = this.view.querySelector('.js-calendar');
-    this.currentDayInfoContainer = this.view.querySelector('.js-current-day-info');
+    this.chosenInfoContainer = this.view.querySelector('.js-chosen-day-info');
+    this.timerContainer = this.view.querySelector('.js-timer-container');
+    this.timerFieldset = this.view.querySelector('.js-timer-fieldset');
+    this.intervalId = null;
   }
   return _createClass(App, [{
     key: "setListeners",
     value: function setListeners() {
       var _this = this;
       this.calendarElement.addEventListener('change', function (e) {
-        return _this.setInfo(new Date(e.target.value));
+        var isCurrentDay = (0,_helpers__WEBPACK_IMPORTED_MODULE_0__.formatDate)(new Date(e.target.value)) === (0,_helpers__WEBPACK_IMPORTED_MODULE_0__.formatDate)(new Date());
+        _this.setInfo(new Date(e.target.value), isCurrentDay);
       });
     }
   }, {
     key: "init",
     value: function init(container) {
-      this.calendarElement.value = (0,_helpers__WEBPACK_IMPORTED_MODULE_0__.formatDate)(new Date());
+      var date = new Date();
+      this.calendarElement.value = (0,_helpers__WEBPACK_IMPORTED_MODULE_0__.formatDate)(date);
       this.setListeners();
-      this.setInfo(new Date(), true);
+      this.setInfo(date, true);
       container === null || container === void 0 || container.append(this.view);
     }
   }, {
+    key: "setTimerValue",
+    value: function setTimerValue(value) {
+      this.timerContainer.textContent = (0,_business_logic__WEBPACK_IMPORTED_MODULE_1__.getStringTimerValue)(value);
+    }
+  }, {
+    key: "setTimerFieldsetDescription",
+    value: function setTimerFieldsetDescription(date) {
+      var id = (0,_business_logic__WEBPACK_IMPORTED_MODULE_1__.getPeriodId)(date, true);
+      var message = "\u0421\u043C\u0435\u043D\u0430 ".concat((0,_business_logic__WEBPACK_IMPORTED_MODULE_1__.isShiftContinue)(id) ? 'заканчивается' : 'начинается', " \u0447\u0435\u0440\u0435\u0437:");
+      this.timerFieldset.querySelector('legend').textContent = message;
+    }
+  }, {
+    key: "setTimer",
+    value: function setTimer(date, isCurrentDay) {
+      var _this2 = this;
+      clearInterval(this.intervalId);
+      if (!isCurrentDay) {
+        this.timerContainer.textContent = '';
+        this.timerFieldset.classList.add('hidden-element');
+        return;
+      }
+      this.setTimerFieldsetDescription(date);
+      this.timerFieldset.classList.remove('hidden-element');
+      var secondsNumber = (0,_business_logic__WEBPACK_IMPORTED_MODULE_1__.getSecondsToNextPeriod)(date);
+      this.setTimerValue(secondsNumber);
+      this.intervalId = setInterval(function () {
+        _this2.setTimerValue(--secondsNumber);
+        if (!secondsNumber) {
+          _this2.setInfo(new Date(), true);
+        }
+      }, 1000);
+    }
+  }, {
     key: "setInfo",
-    value: function setInfo(date, considerTime) {
-      var data = (0,_business_logic__WEBPACK_IMPORTED_MODULE_1__.getContentData)(date, considerTime);
-      this.currentDayInfoContainer.innerHTML = data;
+    value: function setInfo(date, isCurrentDay) {
+      var data = (0,_business_logic__WEBPACK_IMPORTED_MODULE_1__.getContentData)(date, isCurrentDay);
+      this.chosenInfoContainer.textContent = data;
+      this.setTimer(date, isCurrentDay);
     }
   }]);
 }();
@@ -67,14 +106,22 @@ var App = /*#__PURE__*/function () {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   getContentData: () => (/* binding */ getContentData),
-/* harmony export */   getContentData2: () => (/* binding */ getContentData2),
+/* harmony export */   getPeriodId: () => (/* binding */ getPeriodId),
+/* harmony export */   getSecondsToNextPeriod: () => (/* binding */ getSecondsToNextPeriod),
+/* harmony export */   getStringTimerValue: () => (/* binding */ getStringTimerValue),
 /* harmony export */   getWorkingInfo: () => (/* binding */ getWorkingInfo),
+/* harmony export */   isAfterWorkingNightDay: () => (/* binding */ isAfterWorkingNightDay),
 /* harmony export */   isDayWorking: () => (/* binding */ isDayWorking),
-/* harmony export */   isFirstDayOff: () => (/* binding */ isFirstDayOff),
-/* harmony export */   isNightWorking: () => (/* binding */ isNightWorking)
+/* harmony export */   isNightWorking: () => (/* binding */ isNightWorking),
+/* harmony export */   isShiftContinue: () => (/* binding */ isShiftContinue),
+/* harmony export */   parseSecondForTimer: () => (/* binding */ parseSecondForTimer)
 /* harmony export */ });
 /* harmony import */ var _helpers__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./helpers */ "./src/helpers.js");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants */ "./src/constants.js");
 
+
+var PERIOD_ID = _constants__WEBPACK_IMPORTED_MODULE_1__.PERIOD_ID,
+  MESSAGES_MAP = _constants__WEBPACK_IMPORTED_MODULE_1__.MESSAGES_MAP;
 var workingNightNumber = (0,_helpers__WEBPACK_IMPORTED_MODULE_0__.getDayNumberOfYear)(new Date(2022, 6, 21, 0, 0, 0, 0));
 var workingDayNumber = (0,_helpers__WEBPACK_IMPORTED_MODULE_0__.getDayNumberOfYear)(new Date(2022, 6, 20, 0, 0, 0, 0));
 var daySummary = 4;
@@ -84,7 +131,7 @@ var isDayWorking = function isDayWorking(day) {
 var isNightWorking = function isNightWorking(day) {
   return (day - workingNightNumber) % daySummary === 0;
 };
-var isFirstDayOff = function isFirstDayOff(day) {
+var isAfterWorkingNightDay = function isAfterWorkingNightDay(day) {
   return (day - workingDayNumber) % daySummary === 2;
 };
 var getWorkingInfo = function getWorkingInfo(date) {
@@ -92,76 +139,144 @@ var getWorkingInfo = function getWorkingInfo(date) {
   return {
     isDayWorking: isDayWorking(chosenDay),
     isNightWorking: isNightWorking(chosenDay),
-    isFirstDayOff: isFirstDayOff(chosenDay)
+    isAfterWorkingNightDay: isAfterWorkingNightDay(chosenDay)
   };
 };
-
-// export const getContentData = (date) => {
-//     const { isDayWorking, isNightWorking, isFirstDayOff } = getWorkingInfo(date);
-//     const text = 'У Пескаря в этот день';
-
-//     if (isDayWorking) {
-//         return text + ' дневная смена. Завтра в ночь, потом два выходных.';
-//     } else if (isNightWorking) {
-//         return text + ' ночная смена. Потом два выходных.';
-//     } else if (isFirstDayOff) {
-//         return text + ' первый выходной. Завтра ещё один.';
-//     } else {
-//         return text + ' второй выходной. Завтра в день на работу.';
-//     }
-// };
+var allDayLengthInSeconds = 24 * 60 * 60;
 var startDayShift = 8 /* hours */ * 60 /* minutes */ * 60; /* seconds */
-var dayShiftLenght = 10 /* hours */ * 60 /* minutes */ * 60; /* seconds */
-var endtDayShift = 20 /* hours */ * 60 /* minutes */ * 60; /* seconds */
+var dayShiftLenght = 12 /* hours */ * 60 /* minutes */ * 60; /* seconds */
+var endDayShift = 20 /* hours */ * 60 /* minutes */ * 60; /* seconds */
 var startNightShift = 20 /* hours */ * 60 /* minutes */ * 60; /* seconds */
-var endNightLength = 8 /* hours */ * 60 /* minutes */ * 60; /* seconds */
-var getContentData2 = function getContentData2(date) {
+var endNightShift = 8 /* hours */ * 60 /* minutes */ * 60; /* seconds */
+
+function getSecondsToNextPeriod(date) {
+  var timeInSeconds = getPastSecondsOfDay(date);
+  var id = getPeriodId(date, true);
+  switch (id) {
+    case PERIOD_ID.WORKING_DAY_ENDED:
+      {
+        return allDayLengthInSeconds - timeInSeconds + startNightShift; // счётчик до начала смены
+      }
+    case PERIOD_ID.WORKING_DAY:
+      {
+        return dayShiftLenght + startDayShift - timeInSeconds; // счётчик до конца смены
+      }
+    case PERIOD_ID.WORKING_NIGHT_PART_1:
+      {
+        return allDayLengthInSeconds - timeInSeconds + endNightShift; // счётчик до конца смены
+      }
+    case PERIOD_ID.BEFORE_WORKING_NIGHT:
+      {
+        return startNightShift - timeInSeconds; // счётчик до начала смены
+      }
+    case PERIOD_ID.WORKING_NIGHT_ENDED:
+      {
+        return allDayLengthInSeconds - timeInSeconds + allDayLengthInSeconds + startDayShift; // счётчик до начала смены
+      }
+    case PERIOD_ID.WORKING_NIGHT_PART_2:
+      {
+        return endNightShift - timeInSeconds; // счётчик до конца смены
+      }
+    case PERIOD_ID.DAY_OFF:
+      {
+        return allDayLengthInSeconds - timeInSeconds + startDayShift; // cчётчик до начала смены
+      }
+    case PERIOD_ID.BEFORE_WORKING_DAY:
+      {
+        return startDayShift - timeInSeconds; // счётчик до начала смены
+      }
+  }
+}
+var getPeriodId = function getPeriodId(date) {
+  var currentDay = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+  var timeInSeconds = getPastSecondsOfDay(date);
   var _getWorkingInfo = getWorkingInfo(date),
     isDayWorking = _getWorkingInfo.isDayWorking,
     isNightWorking = _getWorkingInfo.isNightWorking,
-    isFirstDayOff = _getWorkingInfo.isFirstDayOff;
-  var text = 'У Пескаря в этот день';
-  if (isDayWorking) {
-    return text + ' дневная смена. Завтра в ночь, потом два выходных.';
-  } else if (isNightWorking) {
-    return text + ' ночная смена. Потом два выходных.';
-  } else if (isFirstDayOff) {
-    return text + ' первый выходной. Завтра ещё один.';
-  } else {
-    return text + ' второй выходной. Завтра в день на работу.';
+    isAfterWorkingNightDay = _getWorkingInfo.isAfterWorkingNightDay;
+  if (currentDay && isDayWorking && timeInSeconds >= endDayShift) {
+    return PERIOD_ID.WORKING_DAY_ENDED;
   }
+  if (currentDay && isDayWorking && timeInSeconds < startDayShift) {
+    return PERIOD_ID.BEFORE_WORKING_DAY;
+  }
+  if (isDayWorking) {
+    return PERIOD_ID.WORKING_DAY;
+  }
+  if (currentDay && isNightWorking && timeInSeconds < startNightShift) {
+    return PERIOD_ID.BEFORE_WORKING_NIGHT;
+  }
+  if (isNightWorking) {
+    return PERIOD_ID.WORKING_NIGHT_PART_1;
+  }
+  if (currentDay && isAfterWorkingNightDay && timeInSeconds >= endNightShift) {
+    return PERIOD_ID.WORKING_NIGHT_ENDED;
+  }
+  if (isAfterWorkingNightDay) {
+    return PERIOD_ID.WORKING_NIGHT_PART_2;
+  }
+  return PERIOD_ID.DAY_OFF;
 };
-function getContentData(date) {
-  var considerTime = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+function getPastSecondsOfDay(date) {
   var hours = date.getHours();
   var minutes = date.getMinutes();
   var seconds = date.getSeconds();
   var timeInSeconds = hours * 60 * 60 + minutes * 60 + seconds;
-  var worker = 'Пескарь';
-  var _getWorkingInfo2 = getWorkingInfo(date),
-    isDayWorking = _getWorkingInfo2.isDayWorking,
-    isNightWorking = _getWorkingInfo2.isNightWorking,
-    isFirstDayOff = _getWorkingInfo2.isFirstDayOff;
-  var text = "".concat(considerTime ? 'Сегодня' : 'В этот день', " ").concat(worker);
-  if (isDayWorking) {
-    if (considerTime && timeInSeconds > endtDayShift) {
-      return text + ' завершил дневную смену в 20:00. Следующий день - ночная смена с 20:00';
-    }
-    return text + ' в дневной смене с 8:00 до 20:00. Следущий день - ночная смена с 20:00.';
-  } else if (isNightWorking) {
-    if (considerTime && timeInSeconds > startNightShift) {
-      return text + ' в ночной смене с 20:00.';
-    }
-    return text + ' выходит в ночную смену с 20:00 до 8:00 следующего дня.';
-  } else if (isFirstDayOff) {
-    if (considerTime && timeInSeconds > endNightLength) {
-      return text + ' закончил ночную смену в 8:00. Следующий день - выходной.';
-    }
-    return text + ' на ночной смене до 8:00. Следующий день - выходной.';
-  } else {
-    return text + ' отдыхает. Следующий день - дневная смена в 8:00.';
-  }
+  return timeInSeconds;
 }
+function parseSecondForTimer(secondsNumber) {
+  var hours = Math.floor(secondsNumber / (60 * 60));
+  var minutes = Math.floor((secondsNumber - hours * 60 * 60) / 60);
+  var seconds = secondsNumber - (hours * 60 * 60 + minutes * 60);
+  return [hours, minutes, seconds];
+}
+function getStringTimerValue(secondsNumber) {
+  var value = parseSecondForTimer(secondsNumber);
+  return value.map(function (item) {
+    return (0,_helpers__WEBPACK_IMPORTED_MODULE_0__.padTo2Digits)(item);
+  }).join(':');
+}
+function getContentData(date) {
+  var currentDay = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+  var worker = 'Пескарь';
+  var beginOfMessage = "".concat(currentDay ? 'Сегодня' : 'В этот день', " ").concat(worker);
+  var id = getPeriodId(date, currentDay);
+  var endOfMessage = MESSAGES_MAP[id];
+  return "".concat(beginOfMessage, " ").concat(endOfMessage);
+}
+var SHIFT_PERIODS = [PERIOD_ID.WORKING_DAY, PERIOD_ID.WORKING_NIGHT_PART_1, PERIOD_ID.WORKING_NIGHT_PART_2];
+var isShiftContinue = function isShiftContinue(id) {
+  return SHIFT_PERIODS.includes(id);
+};
+
+/***/ }),
+
+/***/ "./src/constants.js":
+/*!**************************!*\
+  !*** ./src/constants.js ***!
+  \**************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   MESSAGES_MAP: () => (/* binding */ MESSAGES_MAP),
+/* harmony export */   PERIOD_ID: () => (/* binding */ PERIOD_ID)
+/* harmony export */ });
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+var PERIOD_ID = {
+  WORKING_DAY_ENDED: 0,
+  WORKING_DAY: 1,
+  WORKING_NIGHT_PART_1: 2,
+  BEFORE_WORKING_NIGHT: 3,
+  WORKING_NIGHT_ENDED: 4,
+  WORKING_NIGHT_PART_2: 5,
+  DAY_OFF: 6,
+  BEFORE_WORKING_DAY: 7
+};
+var MESSAGES_MAP = _defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty({}, PERIOD_ID.WORKING_DAY_ENDED, 'завершил дневную смену в 20:00. Следующий день - ночная смена с 20:00.'), PERIOD_ID.WORKING_DAY, 'в дневной смене с 8:00 до 20:00. Следущий день - ночная смена с 20:00.'), PERIOD_ID.WORKING_NIGHT_PART_1, 'в ночной смене с 20:00 до 8:00 следующего дня.'), PERIOD_ID.BEFORE_WORKING_NIGHT, 'выходит в ночную смену с 20:00 до 8:00 следующего дня.'), PERIOD_ID.WORKING_NIGHT_ENDED, 'завершил ночную смену в 8:00. Следующий день - выходной.'), PERIOD_ID.WORKING_NIGHT_PART_2, 'в ночной смене до 8:00. Следующий день - выходной.'), PERIOD_ID.DAY_OFF, 'отдыхает. Следующий день - дневная смена в 8:00.'), PERIOD_ID.BEFORE_WORKING_DAY, 'выходит в дневную смену с 08:00 до 20:00. Следующий день - ночная смена с 20:00');
 
 /***/ }),
 
@@ -207,7 +322,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   appTemplate: () => (/* binding */ appTemplate)
 /* harmony export */ });
-var appTemplate = "<form class=\"content\">\n  <fieldset class=\"fieldset\">\n    <legend>\u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u0434\u0430\u0442\u0443</legend>\n    <input type=\"date\" class=\"js-calendar calendar\" />\n  </fieldset>\n  <div class=\"js-current-day-info current-day-info\"></div>\n</form>";
+var appTemplate = "<form class=\"content\">\n  <fieldset class=\"fieldset\">\n    <legend>\u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u0434\u0430\u0442\u0443</legend>\n    <input type=\"date\" class=\"js-calendar calendar\" />\n  </fieldset>\n  <div class=\"js-chosen-day-info chosen-day-info\"></div>\n  <fieldset class=\"fieldset js-timer-fieldset\">\n  <legend></legend>\n    <div class=\"js-timer-container timer-container\"></div>\n  </fieldset>\n  \n</form>";
 
 /***/ }),
 
@@ -255,15 +370,20 @@ ___CSS_LOADER_EXPORT___.push([module.id, `#container {
     padding-left: 5px;
     padding-right: 5px;
 }
-.current-day-info {
+.chosen-day-info {
     border: 3px solid gray;
     padding: 10px 15px;
+    margin-bottom: 10px;
 }
 .fieldset {
     border: 3px solid gray;
     margin-bottom: 20px;
 }
-`, "",{"version":3,"sources":["webpack://./src/styles.css"],"names":[],"mappings":"AAAA;IACI,aAAa;IACb,uBAAuB;IACvB,aAAa;IACb,uBAAuB;AAC3B;AACA;IACI,sBAAsB;IACtB,aAAa;IACb,aAAa;IACb,mBAAmB;IACnB,uBAAuB;IACvB,sBAAsB;IACtB,eAAe;IACf,uBAAuB;IACvB,gBAAgB;IAChB,YAAY;AAChB;AACA;IACI,eAAe;IACf,sBAAsB;IACtB,mBAAmB;IACnB,iBAAiB;IACjB,kBAAkB;AACtB;AACA;IACI,sBAAsB;IACtB,kBAAkB;AACtB;AACA;IACI,sBAAsB;IACtB,mBAAmB;AACvB","sourcesContent":["#container {\r\n    display: flex;\r\n    justify-content: center;\r\n    height: 100vh;\r\n    align-items: flex-start;\r\n}\r\n.content {\r\n    border: 3px solid gray;\r\n    padding: 20px;\r\n    display: flex;\r\n    border-radius: 30px;\r\n    justify-content: center;\r\n    flex-direction: column;\r\n    font-size: 25px;\r\n    font-family: sans-serif;\r\n    max-width: 600px;\r\n    margin: 15px;\r\n}\r\n.calendar {\r\n    font-size: 25px;\r\n    border: 3px solid gray;\r\n    border-radius: 30px;\r\n    padding-left: 5px;\r\n    padding-right: 5px;\r\n}\r\n.current-day-info {\r\n    border: 3px solid gray;\r\n    padding: 10px 15px;\r\n}\r\n.fieldset {\r\n    border: 3px solid gray;\r\n    margin-bottom: 20px;\r\n}\r\n"],"sourceRoot":""}]);
+
+.hidden-element {
+    display: none;
+}
+`, "",{"version":3,"sources":["webpack://./src/styles.css"],"names":[],"mappings":"AAAA;IACI,aAAa;IACb,uBAAuB;IACvB,aAAa;IACb,uBAAuB;AAC3B;AACA;IACI,sBAAsB;IACtB,aAAa;IACb,aAAa;IACb,mBAAmB;IACnB,uBAAuB;IACvB,sBAAsB;IACtB,eAAe;IACf,uBAAuB;IACvB,gBAAgB;IAChB,YAAY;AAChB;AACA;IACI,eAAe;IACf,sBAAsB;IACtB,mBAAmB;IACnB,iBAAiB;IACjB,kBAAkB;AACtB;AACA;IACI,sBAAsB;IACtB,kBAAkB;IAClB,mBAAmB;AACvB;AACA;IACI,sBAAsB;IACtB,mBAAmB;AACvB;;AAEA;IACI,aAAa;AACjB","sourcesContent":["#container {\r\n    display: flex;\r\n    justify-content: center;\r\n    height: 100vh;\r\n    align-items: flex-start;\r\n}\r\n.content {\r\n    border: 3px solid gray;\r\n    padding: 20px;\r\n    display: flex;\r\n    border-radius: 30px;\r\n    justify-content: center;\r\n    flex-direction: column;\r\n    font-size: 25px;\r\n    font-family: sans-serif;\r\n    max-width: 600px;\r\n    margin: 15px;\r\n}\r\n.calendar {\r\n    font-size: 25px;\r\n    border: 3px solid gray;\r\n    border-radius: 30px;\r\n    padding-left: 5px;\r\n    padding-right: 5px;\r\n}\r\n.chosen-day-info {\r\n    border: 3px solid gray;\r\n    padding: 10px 15px;\r\n    margin-bottom: 10px;\r\n}\r\n.fieldset {\r\n    border: 3px solid gray;\r\n    margin-bottom: 20px;\r\n}\r\n\r\n.hidden-element {\r\n    display: none;\r\n}\r\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

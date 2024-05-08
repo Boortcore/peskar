@@ -3,5 +3,10 @@ export const appTemplate = `<form class="content">
     <legend>Выберите дату</legend>
     <input type="date" class="js-calendar calendar" />
   </fieldset>
-  <div class="js-current-day-info current-day-info"></div>
+  <div class="js-chosen-day-info chosen-day-info"></div>
+  <fieldset class="fieldset js-timer-fieldset">
+  <legend></legend>
+    <div class="js-timer-container timer-container"></div>
+  </fieldset>
+  
 </form>`;
