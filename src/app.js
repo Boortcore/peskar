@@ -10,13 +10,14 @@ export class App {
     }
 
     setListeners() {
-        this.calendarElement.addEventListener('change', (e) => this.setInfo(new Date(e.target.value)));
+        this.calendarElement.addEventListener('change', (e) => this.setInfo(new Date(e.target.value), true));
     }
 
     init(container) {
-        this.calendarElement.value = formatDate(new Date());
+        const date = new Date(2024, 4, 12, 15, 0, 0);
+        this.calendarElement.value = formatDate(date);
         this.setListeners();
-        this.setInfo(new Date(), true);
+        this.setInfo(date, true);
         container?.append(this.view);
     }
 
