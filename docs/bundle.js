@@ -238,7 +238,7 @@ ___CSS_LOADER_EXPORT___.push([module.id, `#container {
 }
 .content {
     border: 3px solid gray;
-    padding: 30px;
+    padding: 20px;
     display: flex;
     border-radius: 30px;
     justify-content: center;
@@ -263,7 +263,7 @@ ___CSS_LOADER_EXPORT___.push([module.id, `#container {
     border: 3px solid gray;
     margin-bottom: 20px;
 }
-`, "",{"version":3,"sources":["webpack://./src/styles.css"],"names":[],"mappings":"AAAA;IACI,aAAa;IACb,uBAAuB;IACvB,aAAa;IACb,uBAAuB;AAC3B;AACA;IACI,sBAAsB;IACtB,aAAa;IACb,aAAa;IACb,mBAAmB;IACnB,uBAAuB;IACvB,sBAAsB;IACtB,eAAe;IACf,uBAAuB;IACvB,gBAAgB;IAChB,YAAY;AAChB;AACA;IACI,eAAe;IACf,sBAAsB;IACtB,mBAAmB;IACnB,iBAAiB;IACjB,kBAAkB;AACtB;AACA;IACI,sBAAsB;IACtB,kBAAkB;AACtB;AACA;IACI,sBAAsB;IACtB,mBAAmB;AACvB","sourcesContent":["#container {\r\n    display: flex;\r\n    justify-content: center;\r\n    height: 100vh;\r\n    align-items: flex-start;\r\n}\r\n.content {\r\n    border: 3px solid gray;\r\n    padding: 30px;\r\n    display: flex;\r\n    border-radius: 30px;\r\n    justify-content: center;\r\n    flex-direction: column;\r\n    font-size: 25px;\r\n    font-family: sans-serif;\r\n    max-width: 600px;\r\n    margin: 15px;\r\n}\r\n.calendar {\r\n    font-size: 25px;\r\n    border: 3px solid gray;\r\n    border-radius: 30px;\r\n    padding-left: 5px;\r\n    padding-right: 5px;\r\n}\r\n.current-day-info {\r\n    border: 3px solid gray;\r\n    padding: 10px 15px;\r\n}\r\n.fieldset {\r\n    border: 3px solid gray;\r\n    margin-bottom: 20px;\r\n}\r\n"],"sourceRoot":""}]);
+`, "",{"version":3,"sources":["webpack://./src/styles.css"],"names":[],"mappings":"AAAA;IACI,aAAa;IACb,uBAAuB;IACvB,aAAa;IACb,uBAAuB;AAC3B;AACA;IACI,sBAAsB;IACtB,aAAa;IACb,aAAa;IACb,mBAAmB;IACnB,uBAAuB;IACvB,sBAAsB;IACtB,eAAe;IACf,uBAAuB;IACvB,gBAAgB;IAChB,YAAY;AAChB;AACA;IACI,eAAe;IACf,sBAAsB;IACtB,mBAAmB;IACnB,iBAAiB;IACjB,kBAAkB;AACtB;AACA;IACI,sBAAsB;IACtB,kBAAkB;AACtB;AACA;IACI,sBAAsB;IACtB,mBAAmB;AACvB","sourcesContent":["#container {\r\n    display: flex;\r\n    justify-content: center;\r\n    height: 100vh;\r\n    align-items: flex-start;\r\n}\r\n.content {\r\n    border: 3px solid gray;\r\n    padding: 20px;\r\n    display: flex;\r\n    border-radius: 30px;\r\n    justify-content: center;\r\n    flex-direction: column;\r\n    font-size: 25px;\r\n    font-family: sans-serif;\r\n    max-width: 600px;\r\n    margin: 15px;\r\n}\r\n.calendar {\r\n    font-size: 25px;\r\n    border: 3px solid gray;\r\n    border-radius: 30px;\r\n    padding-left: 5px;\r\n    padding-right: 5px;\r\n}\r\n.current-day-info {\r\n    border: 3px solid gray;\r\n    padding: 10px 15px;\r\n}\r\n.fieldset {\r\n    border: 3px solid gray;\r\n    margin-bottom: 20px;\r\n}\r\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
