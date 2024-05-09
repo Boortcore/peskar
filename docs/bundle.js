@@ -66,7 +66,7 @@ var App = /*#__PURE__*/function () {
     }
   }, {
     key: "setTimer",
-    value: function setTimer(date, isCurrentDay) {
+    value: function setTimer(isCurrentDay) {
       var _this2 = this;
       clearInterval(this.intervalId);
       if (!isCurrentDay) {
@@ -74,12 +74,13 @@ var App = /*#__PURE__*/function () {
         this.timerFieldset.classList.add('hidden-element');
         return;
       }
-      this.setTimerFieldsetDescription(date);
+      this.setTimerFieldsetDescription(new Date());
       this.timerFieldset.classList.remove('hidden-element');
-      var secondsNumber = (0,_business_logic__WEBPACK_IMPORTED_MODULE_1__.getSecondsToNextPeriod)(date);
+      var secondsNumber = (0,_business_logic__WEBPACK_IMPORTED_MODULE_1__.getSecondsToNextPeriod)(new Date());
       this.setTimerValue(secondsNumber);
       this.intervalId = setInterval(function () {
-        _this2.setTimerValue(--secondsNumber);
+        secondsNumber = (0,_business_logic__WEBPACK_IMPORTED_MODULE_1__.getSecondsToNextPeriod)(new Date());
+        _this2.setTimerValue(secondsNumber);
         if (!secondsNumber) {
           _this2.setInfo(new Date(), true);
         }
@@ -90,7 +91,7 @@ var App = /*#__PURE__*/function () {
     value: function setInfo(date, isCurrentDay) {
       var data = (0,_business_logic__WEBPACK_IMPORTED_MODULE_1__.getContentData)(date, isCurrentDay);
       this.chosenInfoContainer.textContent = data;
-      this.setTimer(date, isCurrentDay);
+      this.setTimer(isCurrentDay);
     }
   }]);
 }();

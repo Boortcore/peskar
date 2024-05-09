@@ -36,19 +36,21 @@ export class App {
         const message = `Смена ${isShiftContinue(id) ? 'заканчивается' : 'начинается'} через:`;
         this.timerFieldset.querySelector('legend').textContent = message;
     }
-    setTimer(date, isCurrentDay) {
+
+    setTimer(isCurrentDay) {
         clearInterval(this.intervalId);
         if (!isCurrentDay) {
             this.timerContainer.textContent = '';
             this.timerFieldset.classList.add('hidden-element');
             return;
         }
-        this.setTimerFieldsetDescription(date);
+        this.setTimerFieldsetDescription(new Date());
         this.timerFieldset.classList.remove('hidden-element');
-        let secondsNumber = getSecondsToNextPeriod(date);
+        let secondsNumber = getSecondsToNextPeriod(new Date());
         this.setTimerValue(secondsNumber);
         this.intervalId = setInterval(() => {
-            this.setTimerValue(--secondsNumber);
+            secondsNumber = getSecondsToNextPeriod(new Date());
+            this.setTimerValue(secondsNumber);
             if (!secondsNumber) {
                 this.setInfo(new Date(), true);
             }
@@ -58,6 +60,6 @@ export class App {
     setInfo(date, isCurrentDay) {
         const data = getContentData(date, isCurrentDay);
         this.chosenInfoContainer.textContent = data;
-        this.setTimer(date, isCurrentDay);
+        this.setTimer(isCurrentDay);
     }
 }
