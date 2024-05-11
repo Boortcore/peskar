@@ -5,6 +5,7 @@ const config = {
     singleQuote: true,
     maxLineLength: false,
     printWidth: 999,
+    arrayExpand: true,
 };
 
 module.exports = config;

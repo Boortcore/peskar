@@ -1,5 +1,5 @@
 import { createElement, formatDate } from './helpers';
-import { getContentData, getStringTimerValue, getPeriodId, getSecondsToNextPeriod, isShiftContinue } from './business-logic';
+import { getContentData, getPeriodIdByDate, getTimerValueByDate, isShiftContinue, getStringTimeBySeconds } from './business-logic';
 import { appTemplate } from './templates';
 
 export class App {
@@ -21,35 +21,35 @@ export class App {
 
     init(container) {
         const date = new Date();
-        this.calendarElement.value = formatDate(date);
         this.setListeners();
         this.setInfo(date, true);
         container?.append(this.view);
     }
 
-    setTimerValue(value) {
-        this.timerContainer.textContent = getStringTimerValue(value);
+    setTimerValue(seconds) {
+        this.timerContainer.textContent = getStringTimeBySeconds(seconds);
     }
 
     setTimerFieldsetDescription(date) {
-        const id = getPeriodId(date, true);
+        const id = getPeriodIdByDate(date, true);
         const message = `Смена ${isShiftContinue(id) ? 'заканчивается' : 'начинается'} через:`;
         this.timerFieldset.querySelector('legend').textContent = message;
     }
 
-    setTimer(isCurrentDay) {
+    setTimer(date, isCurrentDay) {
         clearInterval(this.intervalId);
         if (!isCurrentDay) {
             this.timerContainer.textContent = '';
             this.timerFieldset.classList.add('hidden-element');
             return;
         }
-        this.setTimerFieldsetDescription(new Date());
+        // const date = new Date();
+        this.setTimerFieldsetDescription(date);
         this.timerFieldset.classList.remove('hidden-element');
-        let secondsNumber = getSecondsToNextPeriod(new Date());
+        let secondsNumber = getTimerValueByDate(date, isCurrentDay);
         this.setTimerValue(secondsNumber);
         this.intervalId = setInterval(() => {
-            secondsNumber = getSecondsToNextPeriod(new Date());
+            secondsNumber = getTimerValueByDate(new Date(), isCurrentDay);
             this.setTimerValue(secondsNumber);
             if (!secondsNumber) {
                 this.setInfo(new Date(), true);
@@ -58,8 +58,9 @@ export class App {
     }
 
     setInfo(date, isCurrentDay) {
+        this.calendarElement.value = formatDate(date);
         const data = getContentData(date, isCurrentDay);
         this.chosenInfoContainer.textContent = data;
-        this.setTimer(isCurrentDay);
+        this.setTimer(date, isCurrentDay);
     }
 }

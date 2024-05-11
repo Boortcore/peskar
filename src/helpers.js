@@ -1,4 +1,5 @@
-export const getDayNumberOfYear = (date) => {
+export const getDayNumberSinceStartYear = (date) => {
+    const year = date.getFullYear();
     const startedTime = +new Date(2022, 0, 1);
     const diff = +date - startedTime;
     return Math.floor(diff / 1000 / 60 / 60 / 24);
