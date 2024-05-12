@@ -15,12 +15,12 @@ export class App {
     setListeners() {
         this.calendarElement.addEventListener('change', (e) => {
             const isCurrentDay = formatDate(new Date(e.target.value)) === formatDate(new Date());
-            this.setInfo(new Date(e.target.value), isCurrentDay);
+            this.setInfo(isCurrentDay ? new Date() : new Date(e.target.value), isCurrentDay);
         });
     }
 
     init(container) {
-        const date = new Date();
+        const date = new Date(2024, 4, 16, 8, 0, 0);
         this.setListeners();
         this.setInfo(date, true);
         container?.append(this.view);
@@ -49,11 +49,11 @@ export class App {
         let secondsNumber = getTimerValueByDate(date, isCurrentDay);
         this.setTimerValue(secondsNumber);
         this.intervalId = setInterval(() => {
-            secondsNumber = getTimerValueByDate(new Date(), isCurrentDay);
-            this.setTimerValue(secondsNumber);
-            if (!secondsNumber) {
-                this.setInfo(new Date(), true);
-            }
+            // secondsNumber = getTimerValueByDate(new Date(), isCurrentDay);
+            // this.setTimerValue(secondsNumber);
+            // if (!secondsNumber) {
+            //     this.setInfo(new Date(), true);
+            // }
         }, 1000);
     }
 
@@ -61,6 +61,6 @@ export class App {
         this.calendarElement.value = formatDate(date);
         const data = getContentData(date, isCurrentDay);
         this.chosenInfoContainer.textContent = data;
-        this.setTimer(date, isCurrentDay);
+        this.setTimer(date, true);
     }
 }

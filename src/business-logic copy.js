@@ -27,7 +27,7 @@ export const MESSAGES_MAP = {
 const scheduleInfo = [
     { name: 'дневная', value: [new Date(2022, 6, 20, 8, 0, 0, 0), new Date(2022, 6, 20, 20, 0, 0, 0)] },
     { name: 'ночная', value: [new Date(2022, 6, 21, 20, 0, 0, 0), new Date(2022, 6, 22, 8, 0, 0, 0)] },
-    { name: 'выходной', value: [new Date(2022, 6, 23, 0, 0, 0, 0), new Date(2022, 6, 25, 0, 0, 0, 0)], dayOff: true }
+    { name: 'выходной', value: [new Date(2022, 6, 23, 0, 0, 0, 0), new Date(2022, 6, 24, 0, 0, 0, 0)], dayOff: true }
 ];
 const schedule = getShiftsInfo(scheduleInfo);
 function getMessage(id, scheduleDay, currentDay) {
@@ -97,6 +97,7 @@ function getShiftsInfo(shiftList) {
             end,
             test: begin,
             name,
+            length: (end - begin) / 1000,
             isShiftPart1: isPart,
             dayOff,
             numberDay: numberDayOfBeginning,
@@ -149,32 +150,30 @@ function getShiftsInfo(shiftList) {
 function getScheduleDayByDate(date) {
     const infoLength = schedule.size;
     const dayNumberSinceStartYear = getDayNumberSinceStartYear(date);
-    const scheduleDay = [...schedule.values()].find((dayInfo) => (dayNumberSinceStartYear - dayInfo.numberDay) % infoLength === 0);
+    const scheduleDay = [...schedule.values()].find((dayInfo) => {
+        return (dayNumberSinceStartYear - dayInfo.numberDay) % infoLength === 0;
+    });
     return getSchedyleDayWithTime(date, scheduleDay);
 }
 
-export const getPeriodId = (scheduleDay, currentDay = false) => {
-    const { scheduleDateWithTime, end, begin, dayOff, isShiftPart1, isShiftPart2 } = scheduleDay;
-    const beginShift = +begin / 1000;
-    const endShift = +end / 1000;
-    const currentTime = scheduleDateWithTime / 1000;
-
-    if (currentDay && !dayOff && !isShiftPart1 && !isShiftPart2 && currentTime >= endShift) {
+export const getPeriodId = (timeInSeconds, shiftInfo, currentDay = false) => {
+    const { beginShiftTime, endShiftTime, dayOff, isShiftPart1, isShiftPart2 } = shiftInfo;
+    if (currentDay && !dayOff && !isShiftPart1 && !isShiftPart2 && timeInSeconds >= endShiftTime) {
         return PERIOD_ID.SHIFT_ENDED;
     }
-    if (currentDay && !dayOff && !isShiftPart1 && !isShiftPart2 && currentTime < beginShift) {
+    if (currentDay && !dayOff && !isShiftPart1 && !isShiftPart2 && timeInSeconds < beginShiftTime) {
         return PERIOD_ID.BEFORE_SHIFT;
     }
     if (!isShiftPart1 && !isShiftPart2 && !dayOff) {
         return PERIOD_ID.SHIFT;
     }
-    if (currentDay && isShiftPart1 && currentTime < beginShift) {
+    if (currentDay && isShiftPart1 && timeInSeconds < beginShiftTime) {
         return PERIOD_ID.BEFORE_SHIFT_PART;
     }
     if (isShiftPart1) {
         return PERIOD_ID.SHIFT_PART_1;
     }
-    if (currentDay && isShiftPart2 && currentTime >= endShift) {
+    if (currentDay && isShiftPart2 && timeInSeconds >= endShiftTime) {
         return PERIOD_ID.SHIFT_PART_ENDED;
     }
     if (isShiftPart2) {
@@ -183,7 +182,7 @@ export const getPeriodId = (scheduleDay, currentDay = false) => {
     return PERIOD_ID.DAY_OFF;
 };
 
-function getTimerValue(id, scheduleDay) {
+function getTimerValue(id, timeInSeconds, scheduleDay, nextScheduleDay) {
     const { nextBegin, scheduleDateWithTime, end, begin } = scheduleDay;
     const beginShift = +begin / 1000;
     const endShift = +end / 1000;
@@ -207,6 +206,38 @@ function getTimerValue(id, scheduleDay) {
         }
     }
 }
+
+// function getTimerValue(id, timeInSeconds, scheduleDay, nextScheduleDay) {
+//     const { beginShiftTime, endShiftTime, timeToNextShift, length } = scheduleDay;
+
+//     switch (id) {
+//         case PERIOD_ID.SHIFT_ENDED:
+//         case PERIOD_ID.SHIFT_PART_ENDED:
+//         case PERIOD_ID.DAY_OFF: {
+//             return timeToNextShift - (timeInSeconds - endShiftTime); // счётчик до начала смены
+//         }
+//         case PERIOD_ID.SHIFT_PART_1: {
+//             return length - (timeInSeconds - beginShiftTime); // счётчик до конца смены // подумать как свести к одному выражению.
+//         }
+//         case PERIOD_ID.BEFORE_SHIFT:
+//         case PERIOD_ID.BEFORE_SHIFT_PART: {
+//             return beginShiftTime - timeInSeconds; // счётчик до начала смены
+//         }
+//         // case PERIOD_ID.SHIFT_PART_ENDED: {
+//         //     return timeToNextShift - (timeInSeconds - endShiftTime); // счётчик до начала смены
+//         // }
+//         case PERIOD_ID.SHIFT:
+//         case PERIOD_ID.SHIFT_PART_2: {
+//             return endShiftTime - timeInSeconds; // счётчик до конца смены
+//         }
+//         // case PERIOD_ID.DAY_OFF: {
+//         //     return timeToNextShift - (timeInSeconds - endShiftTime); // cчётчик до начала смены
+//         // }
+//         // case PERIOD_ID.BEFORE_SHIFT: {
+//         //     return beginShiftTime - timeInSeconds; // счётчик до начала смены
+//         // }
+//     }
+// }
 
 function getTimeOfDate(date) {
     const hours = date.getHours();
@@ -233,6 +264,12 @@ export function getStringTimeBySeconds(secondsNumber, withoutSeconds = false) {
     return value.map((item) => padTo2Digits(item)).join(':');
 }
 
+function getScheduleDayIndex(schedule, day) {
+    const list = [...schedule.values()];
+    const index = list.indexOf(day);
+    return index;
+}
+
 function getNexScheduletDay(schedule, scheduleDay, withDayOff = false) {
     const list = [...schedule.values()];
     let index = scheduleDay.index;
@@ -253,23 +290,27 @@ function getNexScheduletDay(schedule, scheduleDay, withDayOff = false) {
 }
 
 export function getTimerValueByDate(date, currentDay) {
+    const timeInSeconds = getTimeInSeconds(date);
     const scheduleDay = getScheduleDayByDate(date);
-    const id = getPeriodId(scheduleDay, currentDay);
-    const timerValue = getTimerValue(id, scheduleDay);
+    const nextScheduleDay = getNexScheduletDay(schedule, scheduleDay);
+    const id = getPeriodId(timeInSeconds, scheduleDay, currentDay);
+    const timerValue = getTimerValue(id, timeInSeconds, scheduleDay, nextScheduleDay);
     return timerValue;
 }
 
 export function getPeriodIdByDate(date, currentDay) {
+    const timeInSeconds = getTimeInSeconds(date);
     const scheduleDay = getScheduleDayByDate(date);
-    const id = getPeriodId(scheduleDay, currentDay);
+    const id = getPeriodId(timeInSeconds, scheduleDay, currentDay);
     return id;
 }
 
 export function getContentData(date, currentDay = false) {
     const worker = 'Пескарь';
+    const timeInSeconds = getTimeInSeconds(date);
     const scheduleDay = getScheduleDayByDate(date);
-    const id = getPeriodId(scheduleDay, currentDay);
-
+    const id = getPeriodId(timeInSeconds, scheduleDay, currentDay);
+    console.log(getTimerValue(id, timeInSeconds, scheduleDay, getNexScheduletDay(schedule, scheduleDay)));
     return getMessage(id, scheduleDay, currentDay);
 }
 
