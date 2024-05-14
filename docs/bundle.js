@@ -44,7 +44,7 @@ var App = /*#__PURE__*/function () {
   }, {
     key: "init",
     value: function init(container) {
-      var date = new Date(2024, 4, 16, 8, 1, 0);
+      var date = new Date();
       this.setListeners();
       this.setInfo(date, true);
       container === null || container === void 0 || container.append(this.view.element);
@@ -66,11 +66,10 @@ var App = /*#__PURE__*/function () {
       this.view.setTimerValue(secondsNumber);
       var day = null;
       this.intervalId = setInterval(function () {
-        var newDate = date;
-        date.setSeconds(date.getSeconds() + 1);
+        var newDate = new Date();
         secondsNumber = _this2.scheduleBuilder.getTimerValueByDate(newDate, isCurrentDay);
         _this2.view.setTimerValue(secondsNumber);
-        _this2.view.setCurrentTime(date, isCurrentDay);
+        _this2.view.setCurrentTime(newDate, isCurrentDay);
         if (!secondsNumber || day && newDate.getDate() !== day) {
           _this2.setInfo(date, true);
         }

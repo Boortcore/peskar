@@ -19,7 +19,7 @@ export class App {
     }
 
     init(container) {
-        const date = new Date(2024, 4, 16, 8, 1, 0);
+        const date = new Date();
         this.setListeners();
         this.setInfo(date, true);
         container?.append(this.view.element);
@@ -39,11 +39,10 @@ export class App {
         this.view.setTimerValue(secondsNumber);
         let day = null;
         this.intervalId = setInterval(() => {
-            const newDate = date;
-            date.setSeconds(date.getSeconds() + 1);
+            const newDate = new Date();
             secondsNumber = this.scheduleBuilder.getTimerValueByDate(newDate, isCurrentDay);
             this.view.setTimerValue(secondsNumber);
-            this.view.setCurrentTime(date, isCurrentDay);
+            this.view.setCurrentTime(newDate, isCurrentDay);
             if (!secondsNumber || (day && newDate.getDate() !== day)) {
                 this.setInfo(date, true);
             }
