@@ -12,9 +12,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   App: () => (/* binding */ App)
 /* harmony export */ });
-/* harmony import */ var _helpers__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./helpers */ "./src/helpers.js");
-/* harmony import */ var _business_logic__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./business-logic */ "./src/business-logic.js");
-/* harmony import */ var _templates__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./templates */ "./src/templates.js");
+/* harmony import */ var _time_helpers__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./time-helpers */ "./src/time-helpers.js");
+/* harmony import */ var _schedule_builder__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./schedule-builder */ "./src/schedule-builder.js");
+/* harmony import */ var _view__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./view */ "./src/view.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor); } }
@@ -25,43 +25,29 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
 
 
 var App = /*#__PURE__*/function () {
-  function App() {
+  function App(scheduleInfo) {
     _classCallCheck(this, App);
-    this.view = (0,_helpers__WEBPACK_IMPORTED_MODULE_0__.createElement)(_templates__WEBPACK_IMPORTED_MODULE_2__.appTemplate);
-    this.calendarElement = this.view.querySelector('.js-calendar');
-    this.chosenInfoContainer = this.view.querySelector('.js-chosen-day-info');
-    this.timerContainer = this.view.querySelector('.js-timer-container');
-    this.timerFieldset = this.view.querySelector('.js-timer-fieldset');
+    this.scheduleBuilder = new _schedule_builder__WEBPACK_IMPORTED_MODULE_1__.ScheduleBuilder(scheduleInfo);
+    this.view = new _view__WEBPACK_IMPORTED_MODULE_2__.View();
     this.intervalId = null;
   }
   return _createClass(App, [{
     key: "setListeners",
     value: function setListeners() {
       var _this = this;
-      this.calendarElement.addEventListener('change', function (e) {
-        var isCurrentDay = (0,_helpers__WEBPACK_IMPORTED_MODULE_0__.formatDate)(new Date(e.target.value)) === (0,_helpers__WEBPACK_IMPORTED_MODULE_0__.formatDate)(new Date());
-        _this.setInfo(new Date(e.target.value), isCurrentDay);
+      this.view.setChangeDateHandler(function (e) {
+        var newDate = new Date(e.target.value);
+        var isCurrentDay = (0,_time_helpers__WEBPACK_IMPORTED_MODULE_0__.formatDate)(newDate) === (0,_time_helpers__WEBPACK_IMPORTED_MODULE_0__.formatDate)(new Date());
+        _this.setInfo(isCurrentDay ? new Date() : (0,_time_helpers__WEBPACK_IMPORTED_MODULE_0__.getDateWithoutTime)(newDate), isCurrentDay);
       });
     }
   }, {
     key: "init",
     value: function init(container) {
-      var date = new Date();
+      var date = new Date(2024, 4, 16, 8, 1, 0);
       this.setListeners();
       this.setInfo(date, true);
-      container === null || container === void 0 || container.append(this.view);
-    }
-  }, {
-    key: "setTimerValue",
-    value: function setTimerValue(seconds) {
-      this.timerContainer.textContent = (0,_business_logic__WEBPACK_IMPORTED_MODULE_1__.getStringTimeBySeconds)(seconds);
-    }
-  }, {
-    key: "setTimerFieldsetDescription",
-    value: function setTimerFieldsetDescription(date) {
-      var id = (0,_business_logic__WEBPACK_IMPORTED_MODULE_1__.getPeriodIdByDate)(date, true);
-      var message = "\u0421\u043C\u0435\u043D\u0430 ".concat((0,_business_logic__WEBPACK_IMPORTED_MODULE_1__.isShiftContinue)(id) ? 'заканчивается' : 'начинается', " \u0447\u0435\u0440\u0435\u0437:");
-      this.timerFieldset.querySelector('legend').textContent = message;
+      container === null || container === void 0 || container.append(this.view.element);
     }
   }, {
     key: "setTimer",
@@ -69,282 +55,45 @@ var App = /*#__PURE__*/function () {
       var _this2 = this;
       clearInterval(this.intervalId);
       if (!isCurrentDay) {
-        this.timerContainer.textContent = '';
-        this.timerFieldset.classList.add('hidden-element');
+        this.view.toggleTimerFieldsetVisibility(false);
         return;
       }
       // const date = new Date();
-      this.setTimerFieldsetDescription(date);
-      this.timerFieldset.classList.remove('hidden-element');
-      var secondsNumber = (0,_business_logic__WEBPACK_IMPORTED_MODULE_1__.getTimerValueByDate)(date, isCurrentDay);
-      this.setTimerValue(secondsNumber);
+      var timerDescription = this.scheduleBuilder.getShiftDescriptionByDate(date);
+      this.view.setTimerFieldsetDescription(timerDescription);
+      this.view.toggleTimerFieldsetVisibility(true);
+      var secondsNumber = this.scheduleBuilder.getTimerValueByDate(date, isCurrentDay);
+      this.view.setTimerValue(secondsNumber);
+      var day = null;
       this.intervalId = setInterval(function () {
-        secondsNumber = (0,_business_logic__WEBPACK_IMPORTED_MODULE_1__.getTimerValueByDate)(new Date(), isCurrentDay);
-        _this2.setTimerValue(secondsNumber);
-        if (!secondsNumber) {
-          _this2.setInfo(new Date(), true);
+        var newDate = date;
+        date.setSeconds(date.getSeconds() + 1);
+        secondsNumber = _this2.scheduleBuilder.getTimerValueByDate(newDate, isCurrentDay);
+        _this2.view.setTimerValue(secondsNumber);
+        _this2.view.setCurrentTime(date, isCurrentDay);
+        if (!secondsNumber || day && newDate.getDate() !== day) {
+          _this2.setInfo(date, true);
         }
+        day = newDate.getDate();
       }, 1000);
     }
   }, {
+    key: "getContentData",
+    value: function getContentData(date) {
+      var forToday = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+      return this.scheduleBuilder.getMessageByDate(date, forToday);
+    }
+  }, {
     key: "setInfo",
-    value: function setInfo(date, isCurrentDay) {
-      this.calendarElement.value = (0,_helpers__WEBPACK_IMPORTED_MODULE_0__.formatDate)(date);
-      var data = (0,_business_logic__WEBPACK_IMPORTED_MODULE_1__.getContentData)(date, isCurrentDay);
-      this.chosenInfoContainer.textContent = data;
-      this.setTimer(date, isCurrentDay);
+    value: function setInfo(date, forToday) {
+      var data = this.getContentData(date, forToday);
+      this.view.setDateValue(date);
+      this.view.setCurrentTime(date, forToday);
+      this.view.setContentData(data);
+      this.setTimer(date, forToday);
     }
   }]);
 }();
-
-/***/ }),
-
-/***/ "./src/business-logic.js":
-/*!*******************************!*\
-  !*** ./src/business-logic.js ***!
-  \*******************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   MESSAGES_MAP: () => (/* binding */ MESSAGES_MAP),
-/* harmony export */   PERIOD_ID: () => (/* binding */ PERIOD_ID),
-/* harmony export */   getContentData: () => (/* binding */ getContentData),
-/* harmony export */   getPeriodId: () => (/* binding */ getPeriodId),
-/* harmony export */   getPeriodIdByDate: () => (/* binding */ getPeriodIdByDate),
-/* harmony export */   getStringTimeBySeconds: () => (/* binding */ getStringTimeBySeconds),
-/* harmony export */   getTimerValueByDate: () => (/* binding */ getTimerValueByDate),
-/* harmony export */   isShiftContinue: () => (/* binding */ isShiftContinue),
-/* harmony export */   parseSecondForTimer: () => (/* binding */ parseSecondForTimer)
-/* harmony export */ });
-/* harmony import */ var _helpers__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./helpers */ "./src/helpers.js");
-function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
-function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
-function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
-function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
-function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
-function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
-function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-
-var allDayLengthInSeconds = 24 * 60 * 60;
-var PERIOD_ID = {
-  SHIFT_ENDED: 0,
-  SHIFT: 1,
-  SHIFT_PART_1: 2,
-  BEFORE_SHIFT_PART: 3,
-  SHIFT_PART_ENDED: 4,
-  SHIFT_PART_2: 5,
-  DAY_OFF: 6,
-  BEFORE_SHIFT: 7
-};
-var MESSAGES_MAP = _defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty({}, PERIOD_ID.SHIFT_ENDED, 'завершил дневную смену в 20:00. Следующий день - ночная смена с 20:00.'), PERIOD_ID.SHIFT, 'в дневной смене с 8:00 до 20:00. Следущий день - ночная смена с 20:00.'), PERIOD_ID.SHIFT_PART_1, 'в ночной смене с 20:00 до 8:00 следующего дня.'), PERIOD_ID.BEFORE_SHIFT_PART, 'выходит в ночную смену с 20:00 до 8:00 следующего дня.'), PERIOD_ID.SHIFT_PART_ENDED, 'завершил ночную смену в 8:00. Следующий день - выходной.'), PERIOD_ID.SHIFT_PART_2, 'в ночной смене до 8:00. Следующий день - выходной.'), PERIOD_ID.DAY_OFF, 'отдыхает. Следующий день - дневная смена в 8:00.'), PERIOD_ID.BEFORE_SHIFT, 'выходит в дневную смену с 08:00 до 20:00. Следующий день - ночная смена с 20:00');
-
-// prettier-ignore
-var schedule = [{
-  name: 'дневная',
-  value: [new Date(2022, 6, 20, 8, 0, 0, 0), new Date(2022, 6, 20, 20, 0, 0, 0)]
-}, {
-  name: 'ночная',
-  value: [new Date(2022, 6, 21, 20, 0, 0, 0), new Date(2022, 6, 22, 8, 0, 0, 0)]
-}, {
-  name: 'выходной',
-  value: [new Date(2022, 6, 23, 0, 0, 0, 0), new Date(2022, 6, 23, 0, 0, 0, 0)],
-  dayOff: true
-}];
-function getShiftsInfo(shiftList) {
-  var days = new Map();
-  shiftList.forEach(function (_ref) {
-    var name = _ref.name,
-      _ref$value = _slicedToArray(_ref.value, 2),
-      begin = _ref$value[0],
-      end = _ref$value[1],
-      dayOff = _ref.dayOff;
-    var numberDayOfBeginning = (0,_helpers__WEBPACK_IMPORTED_MODULE_0__.getDayNumberSinceStartYear)(begin);
-    var numberDayOfEnding = (0,_helpers__WEBPACK_IMPORTED_MODULE_0__.getDayNumberSinceStartYear)(end);
-    var beginShiftTime = getSecondsOfDay(begin);
-    var endShiftTime = getSecondsOfDay(end);
-    var hasAfewDays = numberDayOfBeginning !== numberDayOfEnding;
-    var isDayOff = endShiftTime - beginShiftTime === 0 || dayOff;
-    days.set((0,_helpers__WEBPACK_IMPORTED_MODULE_0__.formatDate)(begin), {
-      begin: begin,
-      end: end,
-      name: name,
-      length: (end - begin) / 1000,
-      isShiftPart1: hasAfewDays,
-      isDayOff: isDayOff,
-      numberDay: numberDayOfBeginning,
-      beginShiftTime: beginShiftTime,
-      endShiftTime: endShiftTime
-    });
-    if (hasAfewDays) {
-      days.set((0,_helpers__WEBPACK_IMPORTED_MODULE_0__.formatDate)(end), {
-        begin: begin,
-        end: end,
-        length: (end - begin) / 1000,
-        name: name,
-        isShiftPart2: hasAfewDays,
-        numberDay: numberDayOfEnding,
-        beginShiftTime: beginShiftTime,
-        endShiftTime: endShiftTime,
-        isDayOff: isDayOff
-      });
-    }
-  });
-  return days;
-}
-var shistsInfo = getShiftsInfo(schedule);
-function getShiftInfo(date) {
-  var infoLength = shistsInfo.size;
-  var dayNumberSinceStartYear = (0,_helpers__WEBPACK_IMPORTED_MODULE_0__.getDayNumberSinceStartYear)(date);
-  return _toConsumableArray(shistsInfo.values()).find(function (dayInfo) {
-    return (dayNumberSinceStartYear - dayInfo.numberDay) % infoLength === 0;
-  });
-}
-var getPeriodId = function getPeriodId(timeInSeconds, shiftInfo) {
-  var currentDay = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-  var beginShiftTime = shiftInfo.beginShiftTime,
-    endShiftTime = shiftInfo.endShiftTime,
-    isDayOff = shiftInfo.isDayOff,
-    isShiftPart1 = shiftInfo.isShiftPart1,
-    isShiftPart2 = shiftInfo.isShiftPart2;
-  if (currentDay && !isDayOff && !isShiftPart1 && !isShiftPart2 && timeInSeconds >= endShiftTime) {
-    return PERIOD_ID.SHIFT_ENDED;
-  }
-  if (currentDay && !isDayOff && !isShiftPart1 && !isShiftPart2 && timeInSeconds < beginShiftTime) {
-    return PERIOD_ID.BEFORE_SHIFT;
-  }
-  if (!isShiftPart1 && !isShiftPart2 && !isDayOff) {
-    return PERIOD_ID.SHIFT;
-  }
-  if (currentDay && isShiftPart1 && timeInSeconds < beginShiftTime) {
-    return PERIOD_ID.BEFORE_SHIFT_PART;
-  }
-  if (isShiftPart1) {
-    return PERIOD_ID.SHIFT_PART_1;
-  }
-  if (currentDay && isShiftPart2 && timeInSeconds >= endShiftTime) {
-    return PERIOD_ID.SHIFT_PART_ENDED;
-  }
-  if (isShiftPart2) {
-    return PERIOD_ID.SHIFT_PART_2;
-  }
-  return PERIOD_ID.DAY_OFF;
-};
-function getTimerValue(id, timeInSeconds, shiftInfo, nextShiftInfo) {
-  var beginShiftTime = shiftInfo.beginShiftTime,
-    endShiftTime = shiftInfo.endShiftTime;
-  var timeToNextShift = Math.abs(nextShiftInfo.begin - shiftInfo.end) / 1000;
-  switch (id) {
-    case PERIOD_ID.SHIFT_ENDED:
-      {
-        return timeToNextShift - (timeInSeconds - beginShiftTime); // счётчик до начала смены
-      }
-    case PERIOD_ID.SHIFT:
-      {
-        return endShiftTime - timeInSeconds; // счётчик до конца смены
-      }
-    case PERIOD_ID.SHIFT_PART_1:
-      {
-        return allDayLengthInSeconds - timeInSeconds + endShiftTime; // счётчик до конца смены
-      }
-    case PERIOD_ID.BEFORE_SHIFT_PART:
-      {
-        return beginShiftTime - timeInSeconds; // счётчик до начала смены
-      }
-    case PERIOD_ID.SHIFT_PART_ENDED:
-      {
-        return timeToNextShift - (timeInSeconds - endShiftTime); // счётчик до начала смены
-      }
-    case PERIOD_ID.SHIFT_PART_2:
-      {
-        return endShiftTime - timeInSeconds; // счётчик до конца смены
-      }
-    case PERIOD_ID.DAY_OFF:
-      {
-        return allDayLengthInSeconds - timeInSeconds + nextShiftInfo.beginShiftTime; // cчётчик до начала смены
-      }
-    case PERIOD_ID.BEFORE_SHIFT:
-      {
-        return beginShiftTime - timeInSeconds; // счётчик до начала смены
-      }
-  }
-}
-function getTimeOfDate(date) {
-  var hours = date.getHours();
-  var minutes = date.getMinutes();
-  var seconds = date.getSeconds();
-  return {
-    hours: hours,
-    minutes: minutes,
-    seconds: seconds
-  };
-}
-function getSecondsOfDay(date) {
-  var _getTimeOfDate = getTimeOfDate(date),
-    hours = _getTimeOfDate.hours,
-    minutes = _getTimeOfDate.minutes,
-    seconds = _getTimeOfDate.seconds;
-  var timeInSeconds = hours * 60 * 60 + minutes * 60 + seconds;
-  return timeInSeconds;
-}
-function parseSecondForTimer(secondsNumber) {
-  var hours = Math.floor(secondsNumber / (60 * 60));
-  var minutes = Math.floor((secondsNumber - hours * 60 * 60) / 60);
-  var seconds = secondsNumber - (hours * 60 * 60 + minutes * 60);
-  return [hours, minutes, seconds];
-}
-function getStringTimeBySeconds(secondsNumber) {
-  var value = parseSecondForTimer(secondsNumber);
-  return value.map(function (item) {
-    return (0,_helpers__WEBPACK_IMPORTED_MODULE_0__.padTo2Digits)(item);
-  }).join(':');
-}
-function getNextShift(shiftInfo) {
-  var list = _toConsumableArray(shistsInfo.values());
-  var index = list.indexOf(shiftInfo);
-  while (true) {
-    if (index === list.length) index = -1;
-    var nextShiftInfo = list[++index];
-    if (nextShiftInfo && !nextShiftInfo.isDayOff) {
-      return nextShiftInfo;
-    }
-  }
-}
-function getTimerValueByDate(date, currentDay) {
-  var timeInSeconds = getSecondsOfDay(date);
-  var shiftInfo = getShiftInfo(date);
-  var nextShiftInfo = getNextShift(shiftInfo);
-  var id = getPeriodId(timeInSeconds, shiftInfo, currentDay);
-  var timerValue = getTimerValue(id, timeInSeconds, shiftInfo, nextShiftInfo);
-  return timerValue;
-}
-function getPeriodIdByDate(date, currentDay) {
-  var timeInSeconds = getSecondsOfDay(date);
-  var shiftInfo = getShiftInfo(date);
-  var id = getPeriodId(timeInSeconds, shiftInfo, currentDay);
-  return id;
-}
-function getContentData(date) {
-  var currentDay = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-  var worker = 'Пескарь';
-  var timeInSeconds = getSecondsOfDay(date);
-  var shiftInfo = getShiftInfo(date);
-  var id = getPeriodId(timeInSeconds, shiftInfo, currentDay);
-  var beginOfMessage = "".concat(currentDay ? 'Сегодня' : 'В этот день', " ");
-  var endOfMessage = MESSAGES_MAP[id];
-  return "".concat(beginOfMessage, " ").concat(endOfMessage);
-}
-var SHIFT_PERIODS = [PERIOD_ID.SHIFT, PERIOD_ID.SHIFT_PART_1, PERIOD_ID.SHIFT_PART_2];
-var isShiftContinue = function isShiftContinue(id) {
-  return SHIFT_PERIODS.includes(id);
-};
 
 /***/ }),
 
@@ -381,6 +130,250 @@ var createElement = function createElement(template) {
 
 /***/ }),
 
+/***/ "./src/schedule-builder.js":
+/*!*********************************!*\
+  !*** ./src/schedule-builder.js ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   ScheduleBuilder: () => (/* binding */ ScheduleBuilder)
+/* harmony export */ });
+/* harmony import */ var _time_helpers__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./time-helpers */ "./src/time-helpers.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor); } }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
+var PERIOD_ID = {
+  SHIFT: 0,
+  SHIFT_ENDED: 1,
+  DAY_OFF: 2,
+  BEFORE_SHIFT: 3
+};
+function getScheduleDayWithTime(currentDay, scheduleDay) {
+  var _getTimeOfDate = (0,_time_helpers__WEBPACK_IMPORTED_MODULE_0__.getTimeOfDate)(currentDay),
+    hours = _getTimeOfDate.hours,
+    minutes = _getTimeOfDate.minutes,
+    seconds = _getTimeOfDate.seconds;
+  var scheduleDateWithTime = new Date(scheduleDay.currentDate.valueOf());
+  scheduleDateWithTime.setHours(hours);
+  scheduleDateWithTime.setMinutes(minutes);
+  scheduleDateWithTime.setSeconds(seconds);
+  return _objectSpread(_objectSpread({}, scheduleDay), {}, {
+    scheduleDateWithTime: scheduleDateWithTime
+  });
+}
+var ScheduleBuilder = /*#__PURE__*/function () {
+  function ScheduleBuilder(scheduleInfo) {
+    _classCallCheck(this, ScheduleBuilder);
+    this.schedule = this.createSchedule(scheduleInfo);
+  }
+  return _createClass(ScheduleBuilder, [{
+    key: "createSchedule",
+    value: function createSchedule(shiftList) {
+      var days = new Map();
+      var index = 0;
+      shiftList.forEach(function (_ref) {
+        var name = _ref.name,
+          _ref$value = _slicedToArray(_ref.value, 2),
+          begin = _ref$value[0],
+          end = _ref$value[1],
+          _ref$dayOff = _ref.dayOff,
+          dayOff = _ref$dayOff === void 0 ? false : _ref$dayOff;
+        var numberDayOfBeginning = (0,_time_helpers__WEBPACK_IMPORTED_MODULE_0__.getDayNumberSinceStartYear)(begin);
+        var numberDayOfEnding = (0,_time_helpers__WEBPACK_IMPORTED_MODULE_0__.getDayNumberSinceStartYear)(end);
+        var beginShiftTime = (0,_time_helpers__WEBPACK_IMPORTED_MODULE_0__.getStringTimeBySeconds)((0,_time_helpers__WEBPACK_IMPORTED_MODULE_0__.getTimeInSeconds)(begin), true);
+        var endShiftTime = (0,_time_helpers__WEBPACK_IMPORTED_MODULE_0__.getStringTimeBySeconds)((0,_time_helpers__WEBPACK_IMPORTED_MODULE_0__.getTimeInSeconds)(end), true);
+        var hasAfewDays = numberDayOfBeginning !== numberDayOfEnding;
+        var dayCount = numberDayOfEnding - numberDayOfBeginning + 1;
+        var isPart = hasAfewDays && !dayOff;
+        var dateOfDays = _defineProperty({
+          0: begin
+        }, dayCount - 1, end);
+        for (var i = 0; i < dayCount; i++) {
+          var dateOfDay = dateOfDays[i] || (0,_time_helpers__WEBPACK_IMPORTED_MODULE_0__.getDateWithoutTime)(begin, i);
+          days.set((0,_time_helpers__WEBPACK_IMPORTED_MODULE_0__.formatDate)(dateOfDay), {
+            index: index++,
+            begin: begin,
+            currentDate: dateOfDay,
+            end: end,
+            name: name,
+            isShiftPart: isPart && i !== dayCount - 1,
+            isLastShiftPart: isPart && i === dayCount - 1,
+            dayOff: dayOff,
+            numberDay: (0,_time_helpers__WEBPACK_IMPORTED_MODULE_0__.getDayNumberSinceStartYear)(dateOfDay),
+            beginShiftTime: beginShiftTime,
+            endShiftTime: endShiftTime
+          });
+        }
+      });
+      return days;
+    }
+  }, {
+    key: "getPeriodIdByDate",
+    value: function getPeriodIdByDate(date, currentDay) {
+      var scheduleDay = this.getScheduleDayByDate(date);
+      var id = this.getPeriodId(scheduleDay, currentDay);
+      return id;
+    }
+  }, {
+    key: "getPeriodId",
+    value: function getPeriodId(scheduleDay) {
+      var currentDay = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+      var scheduleDateWithTime = scheduleDay.scheduleDateWithTime,
+        end = scheduleDay.end,
+        begin = scheduleDay.begin,
+        dayOff = scheduleDay.dayOff;
+      var beginShift = +begin / 1000;
+      var endShift = +end / 1000;
+      var currentTime = scheduleDateWithTime / 1000;
+      var periodId = null;
+      if (currentDay && !dayOff && currentTime >= endShift) {
+        periodId = PERIOD_ID.SHIFT_ENDED;
+      } else if (currentDay && !dayOff && currentTime < beginShift) {
+        periodId = PERIOD_ID.BEFORE_SHIFT;
+      } else if (!dayOff) {
+        periodId = PERIOD_ID.SHIFT;
+      } else {
+        periodId = PERIOD_ID.DAY_OFF;
+      }
+      return periodId;
+    }
+  }, {
+    key: "getMessageByDate",
+    value: function getMessageByDate(date, forToday) {
+      var scheduleDay = this.getScheduleDayByDate(date);
+      var id = this.getPeriodId(scheduleDay, forToday);
+      return this.getMessage(id, scheduleDay, forToday);
+    }
+  }, {
+    key: "getMessage",
+    value: function getMessage(id, scheduleDay, currentDay) {
+      var beginShiftTime = scheduleDay.beginShiftTime,
+        endShiftTime = scheduleDay.endShiftTime,
+        name = scheduleDay.name,
+        isShiftPart = scheduleDay.isShiftPart;
+      var nextScheduleDay = this.getNexScheduleDay(scheduleDay);
+      var beginMessageNotWhileShift = 'В этот день';
+      var beginMessage = "".concat(currentDay ? 'Идёт' : beginMessageNotWhileShift);
+      var partMessage = nextScheduleDay.dayOff ? 'Следующий день - выходной.' : "\u0421\u043B\u0435\u0434\u0443\u044E\u0449\u0438\u0439 \u0434\u0435\u043D\u044C - ".concat(nextScheduleDay.name, " \u0441\u043C\u0435\u043D\u0430 \u0441 ").concat(nextScheduleDay.beginShiftTime, ".");
+      switch (id) {
+        case PERIOD_ID.SHIFT_ENDED:
+          {
+            return "".concat(name[0].toUpperCase() + name.slice(1), " \u0441\u043C\u0435\u043D\u0430 ").concat(currentDay ? 'завершилась' : 'завершается', " \u0432 ").concat(endShiftTime, ". ").concat(partMessage);
+          }
+        case PERIOD_ID.SHIFT:
+          {
+            return "".concat(beginMessage, " ").concat(name, " c\u043C\u0435\u043D\u0430 \u0441 ").concat(beginShiftTime, " \u0434\u043E ").concat(endShiftTime).concat(isShiftPart ? ' следующего дня.' : '. ' + partMessage);
+          }
+        case PERIOD_ID.BEFORE_SHIFT:
+          {
+            return "".concat(beginMessageNotWhileShift, " ").concat(name, " \u0441\u043C\u0435\u043D\u0430 \u043D\u0430\u0447\u043D\u0451\u0442\u0441\u044F \u0441 ").concat(beginShiftTime, " \u0434\u043E ").concat(endShiftTime, " ").concat(isShiftPart ? 'следующего' : 'текущего', " \u0434\u043D\u044F.");
+          }
+        case PERIOD_ID.DAY_OFF:
+          {
+            return "".concat(beginMessageNotWhileShift, " ").concat(name, ". ").concat(partMessage);
+          }
+      }
+    }
+  }, {
+    key: "getShiftDescriptionByDate",
+    value: function getShiftDescriptionByDate(date) {
+      var id = this.getPeriodIdByDate(date, true);
+      var message = "\u0421\u043C\u0435\u043D\u0430 ".concat(id === PERIOD_ID.SHIFT ? 'заканчивается' : 'начинается', " \u0447\u0435\u0440\u0435\u0437:");
+      return message;
+    }
+  }, {
+    key: "getTimerValueByDate",
+    value: function getTimerValueByDate(date, currentDay) {
+      var scheduleDay = this.getScheduleDayByDate(date);
+      var id = this.getPeriodId(scheduleDay, currentDay);
+      var timerValue = this.getTimerValue(id, scheduleDay);
+      return timerValue;
+    }
+  }, {
+    key: "getTimerValue",
+    value: function getTimerValue(id, scheduleDay) {
+      var scheduleDateWithTime = scheduleDay.scheduleDateWithTime,
+        end = scheduleDay.end,
+        begin = scheduleDay.begin;
+      var beginShift = +begin / 1000;
+      var endShift = +end / 1000;
+      var currentTime = scheduleDateWithTime / 1000;
+      switch (id) {
+        case PERIOD_ID.SHIFT_ENDED:
+        case PERIOD_ID.DAY_OFF:
+          {
+            var nextShiftBegin = this.getNexScheduleDay(scheduleDay, function (nextDay) {
+              return !nextDay.dayOff && !nextDay.isLastShiftPart;
+            }).begin / 1000;
+            return nextShiftBegin - currentTime; // счётчик до начала смены
+          }
+        case PERIOD_ID.BEFORE_SHIFT:
+          {
+            return beginShift - currentTime; // счётчик до начала смены
+          }
+        case PERIOD_ID.SHIFT:
+          {
+            return endShift - currentTime; // счётчик до конца смены
+          }
+      }
+    }
+  }, {
+    key: "getScheduleDayByDate",
+    value: function getScheduleDayByDate(date) {
+      var infoLength = this.schedule.size;
+      var dayNumberSinceStartYear = (0,_time_helpers__WEBPACK_IMPORTED_MODULE_0__.getDayNumberSinceStartYear)(date);
+      var scheduleDay = _toConsumableArray(this.schedule.values()).find(function (dayInfo) {
+        return (dayNumberSinceStartYear - dayInfo.numberDay) % infoLength === 0;
+      });
+      return getScheduleDayWithTime(date, scheduleDay);
+    }
+  }, {
+    key: "getNexScheduleDay",
+    value: function getNexScheduleDay(scheduleDay, conditionCallback) {
+      var list = _toConsumableArray(this.schedule.values());
+      var index = scheduleDay.index;
+      while (true) {
+        if (index === list.length) index = -1;
+        var nextScheduleDay = list[++index];
+        if (nextScheduleDay && (typeof conditionCallback !== 'function' || conditionCallback(nextScheduleDay))) {
+          if (scheduleDay.begin > nextScheduleDay.begin) {
+            var begin = new Date(+nextScheduleDay.begin);
+            var end = new Date(+nextScheduleDay.end);
+            begin.setDate(begin.getDate() + list.length);
+            end.setDate(end.getDate() + list.length);
+            return _objectSpread(_objectSpread({}, nextScheduleDay), {}, {
+              begin: begin,
+              end: end
+            });
+          }
+          return nextScheduleDay;
+        }
+      }
+    }
+  }]);
+}();
+
+/***/ }),
+
 /***/ "./src/templates.js":
 /*!**************************!*\
   !*** ./src/templates.js ***!
@@ -391,7 +384,180 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   appTemplate: () => (/* binding */ appTemplate)
 /* harmony export */ });
-var appTemplate = "<form class=\"content\">\n  <fieldset class=\"fieldset\">\n    <legend>\u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u0434\u0430\u0442\u0443</legend>\n    <input type=\"date\" class=\"js-calendar calendar\" />\n  </fieldset>\n  <div class=\"js-chosen-day-info chosen-day-info\"></div>\n  <fieldset class=\"fieldset js-timer-fieldset\">\n  <legend></legend>\n    <div class=\"js-timer-container timer-container\"></div>\n  </fieldset>\n  \n</form>";
+var appTemplate = "<form class=\"content\">\n  <fieldset class=\"fieldset\">\n    <legend>\u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u0434\u0430\u0442\u0443</legend>\n    <input type=\"date\" class=\"js-calendar calendar\" /> \n    <span class=\"js-day-of-week day-of-week\"></span>\n    <span class=\"js-current-time current-time\"></span>\n  </fieldset>\n  <div class=\"js-chosen-day-info chosen-day-info\"></div>\n  <fieldset class=\"fieldset js-timer-fieldset\">\n  <legend></legend>\n    <div class=\"js-timer-container timer-container\"></div>\n  </fieldset>\n  \n</form>";
+
+/***/ }),
+
+/***/ "./src/time-helpers.js":
+/*!*****************************!*\
+  !*** ./src/time-helpers.js ***!
+  \*****************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   formatDate: () => (/* binding */ formatDate),
+/* harmony export */   getDateWithoutTime: () => (/* binding */ getDateWithoutTime),
+/* harmony export */   getDayNumberSinceStartYear: () => (/* binding */ getDayNumberSinceStartYear),
+/* harmony export */   getStringTimeByDate: () => (/* binding */ getStringTimeByDate),
+/* harmony export */   getStringTimeBySeconds: () => (/* binding */ getStringTimeBySeconds),
+/* harmony export */   getTimeInSeconds: () => (/* binding */ getTimeInSeconds),
+/* harmony export */   getTimeOfDate: () => (/* binding */ getTimeOfDate),
+/* harmony export */   padTo2Digits: () => (/* binding */ padTo2Digits),
+/* harmony export */   parseSecondForTimer: () => (/* binding */ parseSecondForTimer)
+/* harmony export */ });
+var padTo2Digits = function padTo2Digits(num) {
+  return num.toString().padStart(2, '0');
+};
+var formatDate = function formatDate(date) {
+  return [date.getFullYear(), padTo2Digits(date.getMonth() + 1), padTo2Digits(date.getDate())].join('-');
+};
+function getStringTimeBySeconds(secondsNumber) {
+  var withoutSeconds = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+  var value = parseSecondForTimer(secondsNumber, withoutSeconds);
+  return value.map(function (item) {
+    return padTo2Digits(item);
+  }).join(':');
+}
+var getDayNumberSinceStartYear = function getDayNumberSinceStartYear(date) {
+  var startedTime = +new Date(2022, 0, 1);
+  var diff = +date - startedTime;
+  return Math.floor(diff / 1000 / 60 / 60 / 24);
+};
+function getTimeInSeconds(date) {
+  var _getTimeOfDate = getTimeOfDate(date),
+    hours = _getTimeOfDate.hours,
+    minutes = _getTimeOfDate.minutes,
+    seconds = _getTimeOfDate.seconds;
+  var timeInSeconds = hours * 60 * 60 + minutes * 60 + seconds;
+  return timeInSeconds;
+}
+function getStringTimeByDate(date) {
+  var _getTimeOfDate2 = getTimeOfDate(date),
+    hours = _getTimeOfDate2.hours,
+    minutes = _getTimeOfDate2.minutes,
+    seconds = _getTimeOfDate2.seconds;
+  return [hours, minutes, seconds].map(function (item) {
+    return padTo2Digits(item);
+  }).join(':');
+}
+function parseSecondForTimer(secondsNumber, withoutSeconds) {
+  var hours = Math.floor(secondsNumber / (60 * 60));
+  var minutes = Math.floor((secondsNumber - hours * 60 * 60) / 60);
+  var seconds = !withoutSeconds ? secondsNumber - (hours * 60 * 60 + minutes * 60) : 0;
+  return [hours, minutes].concat(!withoutSeconds ? seconds : []);
+}
+function getTimeOfDate(date) {
+  var hours = date.getHours();
+  var minutes = date.getMinutes();
+  var seconds = date.getSeconds();
+  return {
+    hours: hours,
+    minutes: minutes,
+    seconds: seconds
+  };
+}
+function getDateWithoutTime(date) {
+  var offset = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+  var day = new Date(date.valueOf());
+  day.setDate(day.getDate() + offset);
+  day.setHours(0);
+  day.setMinutes(0);
+  day.setSeconds(0);
+  return day;
+}
+
+/***/ }),
+
+/***/ "./src/view.js":
+/*!*********************!*\
+  !*** ./src/view.js ***!
+  \*********************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   View: () => (/* binding */ View)
+/* harmony export */ });
+/* harmony import */ var _time_helpers__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./time-helpers */ "./src/time-helpers.js");
+/* harmony import */ var _helpers__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./helpers */ "./src/helpers.js");
+/* harmony import */ var _templates__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./templates */ "./src/templates.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor); } }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
+
+
+var DAY_WEEK = {
+  0: 'Воскресенье',
+  1: 'Понедельник',
+  2: 'Вторник',
+  3: 'Среда',
+  4: 'Четверг',
+  5: 'Пятница',
+  6: 'Суббота'
+};
+var View = /*#__PURE__*/function () {
+  function View() {
+    _classCallCheck(this, View);
+    this.element = (0,_helpers__WEBPACK_IMPORTED_MODULE_1__.createElement)(_templates__WEBPACK_IMPORTED_MODULE_2__.appTemplate);
+    this.calendarElement = this.element.querySelector('.js-calendar');
+    this.chosenInfoContainer = this.element.querySelector('.js-chosen-day-info');
+    this.timerContainer = this.element.querySelector('.js-timer-container');
+    this.timerFieldset = this.element.querySelector('.js-timer-fieldset');
+    this.dayOfWeekElement = this.element.querySelector('.js-day-of-week');
+    this.currentTimeElement = this.element.querySelector('.js-current-time');
+  }
+  return _createClass(View, [{
+    key: "setTimerValue",
+    value: function setTimerValue(seconds) {
+      this.timerContainer.textContent = (0,_time_helpers__WEBPACK_IMPORTED_MODULE_0__.getStringTimeBySeconds)(seconds);
+    }
+  }, {
+    key: "setTimerFieldsetDescription",
+    value: function setTimerFieldsetDescription(value) {
+      this.timerFieldset.querySelector('legend').textContent = value;
+    }
+  }, {
+    key: "setDayOfWeek",
+    value: function setDayOfWeek(date) {
+      this.dayOfWeekElement.textContent = DAY_WEEK[date.getDay()];
+    }
+  }, {
+    key: "setDateValue",
+    value: function setDateValue(date) {
+      this.calendarElement.value = (0,_time_helpers__WEBPACK_IMPORTED_MODULE_0__.formatDate)(date);
+      this.dayOfWeekElement.textContent = DAY_WEEK[date.getDay()];
+    }
+  }, {
+    key: "setCurrentTime",
+    value: function setCurrentTime(date, isCurrentDay) {
+      if (!isCurrentDay) this.currentTimeElement.classList.add('hidden-element');else {
+        this.currentTimeElement.classList.remove('hidden-element');
+        this.currentTimeElement.textContent = (0,_time_helpers__WEBPACK_IMPORTED_MODULE_0__.getStringTimeByDate)(date);
+      }
+    }
+  }, {
+    key: "setContentData",
+    value: function setContentData(data) {
+      this.chosenInfoContainer.textContent = data;
+    }
+  }, {
+    key: "setChangeDateHandler",
+    value: function setChangeDateHandler(handler) {
+      this.calendarElement.addEventListener('change', handler);
+    }
+  }, {
+    key: "toggleTimerFieldsetVisibility",
+    value: function toggleTimerFieldsetVisibility(flag) {
+      this.timerFieldset.classList.toggle('hidden-element', !flag);
+      if (!flag) this.timerContainer.textContent = '';
+    }
+  }]);
+}();
 
 /***/ }),
 
@@ -417,7 +583,6 @@ var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBP
 ___CSS_LOADER_EXPORT___.push([module.id, `#container {
     display: flex;
     justify-content: center;
-    height: 100vh;
     align-items: flex-start;
 }
 .content {
@@ -432,12 +597,20 @@ ___CSS_LOADER_EXPORT___.push([module.id, `#container {
     max-width: 600px;
     margin: 15px;
 }
-.calendar {
+.calendar,
+.day-of-week,
+.current-time {
     font-size: 25px;
     border: 3px solid gray;
     border-radius: 30px;
     padding-left: 5px;
     padding-right: 5px;
+    margin: 5px;
+}
+.day-of-week,
+.current-time {
+    border-radius: 30px;
+    padding: 2px 10px;
 }
 .chosen-day-info {
     border: 3px solid gray;
@@ -447,12 +620,14 @@ ___CSS_LOADER_EXPORT___.push([module.id, `#container {
 .fieldset {
     border: 3px solid gray;
     margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
 }
 
 .hidden-element {
     display: none;
 }
-`, "",{"version":3,"sources":["webpack://./src/styles.css"],"names":[],"mappings":"AAAA;IACI,aAAa;IACb,uBAAuB;IACvB,aAAa;IACb,uBAAuB;AAC3B;AACA;IACI,sBAAsB;IACtB,aAAa;IACb,aAAa;IACb,mBAAmB;IACnB,uBAAuB;IACvB,sBAAsB;IACtB,eAAe;IACf,uBAAuB;IACvB,gBAAgB;IAChB,YAAY;AAChB;AACA;IACI,eAAe;IACf,sBAAsB;IACtB,mBAAmB;IACnB,iBAAiB;IACjB,kBAAkB;AACtB;AACA;IACI,sBAAsB;IACtB,kBAAkB;IAClB,mBAAmB;AACvB;AACA;IACI,sBAAsB;IACtB,mBAAmB;AACvB;;AAEA;IACI,aAAa;AACjB","sourcesContent":["#container {\r\n    display: flex;\r\n    justify-content: center;\r\n    height: 100vh;\r\n    align-items: flex-start;\r\n}\r\n.content {\r\n    border: 3px solid gray;\r\n    padding: 20px;\r\n    display: flex;\r\n    border-radius: 30px;\r\n    justify-content: center;\r\n    flex-direction: column;\r\n    font-size: 25px;\r\n    font-family: sans-serif;\r\n    max-width: 600px;\r\n    margin: 15px;\r\n}\r\n.calendar {\r\n    font-size: 25px;\r\n    border: 3px solid gray;\r\n    border-radius: 30px;\r\n    padding-left: 5px;\r\n    padding-right: 5px;\r\n}\r\n.chosen-day-info {\r\n    border: 3px solid gray;\r\n    padding: 10px 15px;\r\n    margin-bottom: 10px;\r\n}\r\n.fieldset {\r\n    border: 3px solid gray;\r\n    margin-bottom: 20px;\r\n}\r\n\r\n.hidden-element {\r\n    display: none;\r\n}\r\n"],"sourceRoot":""}]);
+`, "",{"version":3,"sources":["webpack://./src/styles.css"],"names":[],"mappings":"AAAA;IACI,aAAa;IACb,uBAAuB;IACvB,uBAAuB;AAC3B;AACA;IACI,sBAAsB;IACtB,aAAa;IACb,aAAa;IACb,mBAAmB;IACnB,uBAAuB;IACvB,sBAAsB;IACtB,eAAe;IACf,uBAAuB;IACvB,gBAAgB;IAChB,YAAY;AAChB;AACA;;;IAGI,eAAe;IACf,sBAAsB;IACtB,mBAAmB;IACnB,iBAAiB;IACjB,kBAAkB;IAClB,WAAW;AACf;AACA;;IAEI,mBAAmB;IACnB,iBAAiB;AACrB;AACA;IACI,sBAAsB;IACtB,kBAAkB;IAClB,mBAAmB;AACvB;AACA;IACI,sBAAsB;IACtB,mBAAmB;IACnB,aAAa;IACb,eAAe;AACnB;;AAEA;IACI,aAAa;AACjB","sourcesContent":["#container {\r\n    display: flex;\r\n    justify-content: center;\r\n    align-items: flex-start;\r\n}\r\n.content {\r\n    border: 3px solid gray;\r\n    padding: 20px;\r\n    display: flex;\r\n    border-radius: 30px;\r\n    justify-content: center;\r\n    flex-direction: column;\r\n    font-size: 25px;\r\n    font-family: sans-serif;\r\n    max-width: 600px;\r\n    margin: 15px;\r\n}\r\n.calendar,\r\n.day-of-week,\r\n.current-time {\r\n    font-size: 25px;\r\n    border: 3px solid gray;\r\n    border-radius: 30px;\r\n    padding-left: 5px;\r\n    padding-right: 5px;\r\n    margin: 5px;\r\n}\r\n.day-of-week,\r\n.current-time {\r\n    border-radius: 30px;\r\n    padding: 2px 10px;\r\n}\r\n.chosen-day-info {\r\n    border: 3px solid gray;\r\n    padding: 10px 15px;\r\n    margin-bottom: 10px;\r\n}\r\n.fieldset {\r\n    border: 3px solid gray;\r\n    margin-bottom: 20px;\r\n    display: flex;\r\n    flex-wrap: wrap;\r\n}\r\n\r\n.hidden-element {\r\n    display: none;\r\n}\r\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -981,7 +1156,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _app__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./app */ "./src/app.js");
 
 
-var app = new _app__WEBPACK_IMPORTED_MODULE_1__.App();
+var scheduleInfo = [{
+  name: 'дневная',
+  value: [new Date(2022, 6, 20, 8, 0, 0, 0), new Date(2022, 6, 20, 20, 0, 0, 0)]
+}, {
+  name: 'ночная',
+  value: [new Date(2022, 6, 21, 20, 0, 0, 0), new Date(2022, 6, 22, 8, 0, 0, 0)]
+}, {
+  name: 'выходной',
+  value: [new Date(2022, 6, 23, 0, 0, 0, 0), new Date(2022, 6, 23, 0, 0, 0, 0)],
+  dayOff: true
+}];
+var app = new _app__WEBPACK_IMPORTED_MODULE_1__.App(scheduleInfo);
 app.init(document.querySelector('#container'));
 })();
 

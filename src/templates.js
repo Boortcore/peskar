@@ -1,7 +1,9 @@
 export const appTemplate = `<form class="content">
   <fieldset class="fieldset">
     <legend>Выберите дату</legend>
-    <input type="date" class="js-calendar calendar" />
+    <input type="date" class="js-calendar calendar" /> 
+    <span class="js-day-of-week day-of-week"></span>
+    <span class="js-current-time current-time"></span>
   </fieldset>
   <div class="js-chosen-day-info chosen-day-info"></div>
   <fieldset class="fieldset js-timer-fieldset">
