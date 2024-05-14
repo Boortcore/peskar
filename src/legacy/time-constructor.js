@@ -1,4 +1,4 @@
-import { getDayNumberOfYear } from './helpers';
+import { getDayNumberOfYear } from '../helpers';
 
 export class TimeContructor {
     constructor({ dayShift, nightShift, summaryDays, schedule, worker }) {

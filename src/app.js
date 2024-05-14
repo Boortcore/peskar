@@ -14,7 +14,7 @@ export class App {
         this.view.setChangeDateHandler((e) => {
             const newDate = new Date(e.target.value);
             const isCurrentDay = formatDate(newDate) === formatDate(new Date());
-            this.setInfo(isCurrentDay ? new Date() : getDateWithoutTime(newDate), isCurrentDay);
+            this.setInfo(isCurrentDay ? new Date() : getDateWithoutTime(newDate, 0), isCurrentDay);
         });
     }
 

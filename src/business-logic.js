@@ -52,7 +52,7 @@ function getScheduleDayWithTime(currentDay, scheduleDay) {
     scheduleDateWithTime.setSeconds(seconds);
     return { ...scheduleDay, scheduleDateWithTime };
 }
-function getShiftsInfo(shiftList) {
+export function getShiftsInfo(shiftList) {
     const days = new Map();
     let index = 0;
     shiftList.forEach(({ name, value: [begin, end], dayOff = false }) => {

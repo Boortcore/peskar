@@ -13,9 +13,18 @@ function getScheduleDayWithTime(currentDay, scheduleDay) {
     scheduleDateWithTime.setHours(hours);
     scheduleDateWithTime.setMinutes(minutes);
     scheduleDateWithTime.setSeconds(seconds);
-    return { ...scheduleDay, scheduleDateWithTime };
+    return { ...scheduleDay, scheduleDateWithTime, chosenDay: currentDay };
 }
 
+const DAY_OF_WEEK_MAP = {
+    0: 'воскресенья',
+    1: 'понедельника',
+    2: 'вторника',
+    3: 'среды',
+    4: 'четверга',
+    5: 'пятницы',
+    6: 'субботы',
+};
 export class ScheduleBuilder {
     constructor(scheduleInfo) {
         this.schedule = this.createSchedule(scheduleInfo);
@@ -88,17 +97,21 @@ export class ScheduleBuilder {
     }
 
     getMessage(id, scheduleDay, currentDay) {
-        const { beginShiftTime, endShiftTime, name, isShiftPart } = scheduleDay;
+        const { beginShiftTime, endShiftTime, name, isShiftPart, isLastShiftPart, chosenDay } = scheduleDay;
+        const dayOfWeek = chosenDay.getDay();
         const nextScheduleDay = this.getNexScheduleDay(scheduleDay);
         const beginMessageNotWhileShift = 'В этот день';
         const beginMessage = `${currentDay ? 'Идёт' : beginMessageNotWhileShift}`;
         const partMessage = nextScheduleDay.dayOff ? 'Следующий день - выходной.' : `Следующий день - ${nextScheduleDay.name} смена с ${nextScheduleDay.beginShiftTime}.`;
         switch (id) {
+            case PERIOD_ID.SHIFT: {
+                const firstShiftDay = isShiftPart ? '' : `прошлого дня (${DAY_OF_WEEK_MAP[dayOfWeek - 1]})`;
+                const secondShiftDay = isLastShiftPart ? '' : `следующего дня (${DAY_OF_WEEK_MAP[dayOfWeek + 1]})`;
+                return `${beginMessage} ${name} cмена с ${beginShiftTime} ${isShiftPart || isLastShiftPart ? firstShiftDay : ''} до ${endShiftTime}${isShiftPart || isLastShiftPart ? ' ' + secondShiftDay + '.' : '' + '. ' + partMessage}`;
+                // return `${beginMessage} ${name} cмена с ${beginShiftTime} ${isShiftPart ? ` ${DAY_OF_WEEK_MAP[begin.getDay()]} до ${endShiftTime}${isShiftPart ? ` ${DAY_OF_WEEK_MAP[end.getDay()]}. `: '. ' + partMessage}`;
+            }
             case PERIOD_ID.SHIFT_ENDED: {
                 return `${name[0].toUpperCase() + name.slice(1)} смена ${currentDay ? 'завершилась' : 'завершается'} в ${endShiftTime}. ${partMessage}`;
-            }
-            case PERIOD_ID.SHIFT: {
-                return `${beginMessage} ${name} cмена с ${beginShiftTime} до ${endShiftTime}${isShiftPart ? ' следующего дня.' : '. ' + partMessage}`;
             }
             case PERIOD_ID.BEFORE_SHIFT: {
                 return `${beginMessageNotWhileShift} ${name} смена начнётся с ${beginShiftTime} до ${endShiftTime} ${isShiftPart ? 'следующего' : 'текущего'} дня.`;

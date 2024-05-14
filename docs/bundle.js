@@ -38,7 +38,7 @@ var App = /*#__PURE__*/function () {
       this.view.setChangeDateHandler(function (e) {
         var newDate = new Date(e.target.value);
         var isCurrentDay = (0,_time_helpers__WEBPACK_IMPORTED_MODULE_0__.formatDate)(newDate) === (0,_time_helpers__WEBPACK_IMPORTED_MODULE_0__.formatDate)(new Date());
-        _this.setInfo(isCurrentDay ? new Date() : (0,_time_helpers__WEBPACK_IMPORTED_MODULE_0__.getDateWithoutTime)(newDate), isCurrentDay);
+        _this.setInfo(isCurrentDay ? new Date() : (0,_time_helpers__WEBPACK_IMPORTED_MODULE_0__.getDateWithoutTime)(newDate, 0), isCurrentDay);
       });
     }
   }, {
@@ -176,9 +176,19 @@ function getScheduleDayWithTime(currentDay, scheduleDay) {
   scheduleDateWithTime.setMinutes(minutes);
   scheduleDateWithTime.setSeconds(seconds);
   return _objectSpread(_objectSpread({}, scheduleDay), {}, {
-    scheduleDateWithTime: scheduleDateWithTime
+    scheduleDateWithTime: scheduleDateWithTime,
+    chosenDay: currentDay
   });
 }
+var DAY_OF_WEEK_MAP = {
+  0: 'воскресенья',
+  1: 'понедельника',
+  2: 'вторника',
+  3: 'среды',
+  4: 'четверга',
+  5: 'пятницы',
+  6: 'субботы'
+};
 var ScheduleBuilder = /*#__PURE__*/function () {
   function ScheduleBuilder(scheduleInfo) {
     _classCallCheck(this, ScheduleBuilder);
@@ -268,19 +278,25 @@ var ScheduleBuilder = /*#__PURE__*/function () {
       var beginShiftTime = scheduleDay.beginShiftTime,
         endShiftTime = scheduleDay.endShiftTime,
         name = scheduleDay.name,
-        isShiftPart = scheduleDay.isShiftPart;
+        isShiftPart = scheduleDay.isShiftPart,
+        isLastShiftPart = scheduleDay.isLastShiftPart,
+        chosenDay = scheduleDay.chosenDay;
+      var dayOfWeek = chosenDay.getDay();
       var nextScheduleDay = this.getNexScheduleDay(scheduleDay);
       var beginMessageNotWhileShift = 'В этот день';
       var beginMessage = "".concat(currentDay ? 'Идёт' : beginMessageNotWhileShift);
       var partMessage = nextScheduleDay.dayOff ? 'Следующий день - выходной.' : "\u0421\u043B\u0435\u0434\u0443\u044E\u0449\u0438\u0439 \u0434\u0435\u043D\u044C - ".concat(nextScheduleDay.name, " \u0441\u043C\u0435\u043D\u0430 \u0441 ").concat(nextScheduleDay.beginShiftTime, ".");
       switch (id) {
+        case PERIOD_ID.SHIFT:
+          {
+            var firstShiftDay = isShiftPart ? '' : "\u043F\u0440\u043E\u0448\u043B\u043E\u0433\u043E \u0434\u043D\u044F (".concat(DAY_OF_WEEK_MAP[dayOfWeek - 1], ")");
+            var secondShiftDay = isLastShiftPart ? '' : "\u0441\u043B\u0435\u0434\u0443\u044E\u0449\u0435\u0433\u043E \u0434\u043D\u044F (".concat(DAY_OF_WEEK_MAP[dayOfWeek + 1], ")");
+            return "".concat(beginMessage, " ").concat(name, " c\u043C\u0435\u043D\u0430 \u0441 ").concat(beginShiftTime, " ").concat(isShiftPart || isLastShiftPart ? firstShiftDay : '', " \u0434\u043E ").concat(endShiftTime).concat(isShiftPart || isLastShiftPart ? ' ' + secondShiftDay + '.' : '' + '. ' + partMessage);
+            // return `${beginMessage} ${name} cмена с ${beginShiftTime} ${isShiftPart ? ` ${DAY_OF_WEEK_MAP[begin.getDay()]} до ${endShiftTime}${isShiftPart ? ` ${DAY_OF_WEEK_MAP[end.getDay()]}. `: '. ' + partMessage}`;
+          }
         case PERIOD_ID.SHIFT_ENDED:
           {
             return "".concat(name[0].toUpperCase() + name.slice(1), " \u0441\u043C\u0435\u043D\u0430 ").concat(currentDay ? 'завершилась' : 'завершается', " \u0432 ").concat(endShiftTime, ". ").concat(partMessage);
-          }
-        case PERIOD_ID.SHIFT:
-          {
-            return "".concat(beginMessage, " ").concat(name, " c\u043C\u0435\u043D\u0430 \u0441 ").concat(beginShiftTime, " \u0434\u043E ").concat(endShiftTime).concat(isShiftPart ? ' следующего дня.' : '. ' + partMessage);
           }
         case PERIOD_ID.BEFORE_SHIFT:
           {
