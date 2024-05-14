@@ -3,6 +3,7 @@
     justify-content: center;
     align-items: flex-start;
 }
+
 .content {
     border: 3px solid gray;
     padding: 20px;
@@ -15,7 +16,8 @@
     max-width: 600px;
     margin: 15px;
 }
-.calendar,
+
+.daypicker,
 .day-of-week,
 .current-time {
     font-size: 25px;
@@ -25,16 +27,19 @@
     padding-right: 5px;
     margin: 5px;
 }
+
 .day-of-week,
 .current-time {
     border-radius: 30px;
     padding: 2px 10px;
 }
+
 .chosen-day-info {
     border: 3px solid gray;
     padding: 10px 15px;
     margin-bottom: 10px;
 }
+
 .fieldset {
     border: 3px solid gray;
     margin-bottom: 20px;
@@ -44,4 +49,73 @@
 
 .hidden-element {
     display: none;
+}
+
+.calendar {
+    font-size: 25px;
+    margin-bottom: 15px;
+}
+.calendar__header {
+    text-align: center;
+    margin: 0;
+}
+.calendar__content {
+    border: 3px solid gray;
+}
+.calendar__row {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: nowrap;
+}
+
+.calendar__row-item {
+    border: 1px solid gray;
+    flex: 1 1 0px;
+    text-align: center;
+}
+
+.calendar__row-item--weekend {
+    background-color: red;
+}
+
+.calendar__row-item--shift {
+    background-color: green;
+}
+
+.calendar__row-item--part-shift {
+    background-color: yellow;
+}
+
+.legend {
+    font-size: 15px;
+    border: 3px solid gray;
+    border-radius: 30px;
+    padding: 20px;
+    margin: 0 auto;
+    margin-bottom: 20px;
+}
+.legend__header {
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 10px;
+}
+.legend__item {
+    display: flex;
+    align-items: center;
+    padding: 0;
+    margin: 5px;
+    max-width: 250px;
+}
+
+.legend__icon {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    border: 1px solid gray;
+}
+
+.legend__asterisk {
+    font-size: 30px !important;
 }

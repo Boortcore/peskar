@@ -25,6 +25,21 @@ const DAY_OF_WEEK_MAP = {
     5: 'пятницы',
     6: 'субботы',
 };
+
+function getColor({ isShiftPart, isLastShiftPart, isShift, dayOff }) {
+    if (isShift) {
+        return 'green';
+    }
+    if (isShiftPart) {
+        return 'yellow';
+    }
+    if (isLastShiftPart) {
+        return 'orange';
+    }
+    if (dayOff) {
+        return 'white';
+    }
+}
 export class ScheduleBuilder {
     constructor(scheduleInfo) {
         this.schedule = this.createSchedule(scheduleInfo);
@@ -48,19 +63,25 @@ export class ScheduleBuilder {
 
             for (let i = 0; i < dayCount; i++) {
                 const dateOfDay = dateOfDays[i] || getDateWithoutTime(begin, i);
-                days.set(formatDate(dateOfDay), {
+                const isShiftPart = isPart && i !== dayCount - 1;
+                const isLastShiftPart = isPart && i === dayCount - 1;
+                const isShift = !isShiftPart && !isLastShiftPart && !dayOff;
+                const scheduleDay = {
                     index: index++,
                     begin,
                     currentDate: dateOfDay,
                     end,
                     name,
-                    isShiftPart: isPart && i !== dayCount - 1,
-                    isLastShiftPart: isPart && i === dayCount - 1,
+                    isShift,
+                    isLastShiftPart,
+                    isShiftPart,
                     dayOff,
                     numberDay: getDayNumberSinceStartYear(dateOfDay),
                     beginShiftTime,
                     endShiftTime,
-                });
+                    color: getColor({ isShiftPart, isLastShiftPart, isShift, dayOff }),
+                };
+                days.set(formatDate(dateOfDay), scheduleDay);
             }
         });
         return days;
@@ -106,9 +127,8 @@ export class ScheduleBuilder {
         switch (id) {
             case PERIOD_ID.SHIFT: {
                 const firstShiftDay = isShiftPart ? '' : `прошлого дня (${DAY_OF_WEEK_MAP[dayOfWeek - 1]})`;
-                const secondShiftDay = isLastShiftPart ? '' : `следующего дня (${DAY_OF_WEEK_MAP[dayOfWeek + 1]})`;
-                return `${beginMessage} ${name} cмена с ${beginShiftTime} ${isShiftPart || isLastShiftPart ? firstShiftDay : ''} до ${endShiftTime}${isShiftPart || isLastShiftPart ? ' ' + secondShiftDay + '.' : '' + '. ' + partMessage}`;
-                // return `${beginMessage} ${name} cмена с ${beginShiftTime} ${isShiftPart ? ` ${DAY_OF_WEEK_MAP[begin.getDay()]} до ${endShiftTime}${isShiftPart ? ` ${DAY_OF_WEEK_MAP[end.getDay()]}. `: '. ' + partMessage}`;
+                const secondShiftDay = isLastShiftPart ? '' : ` следующего дня (${DAY_OF_WEEK_MAP[dayOfWeek + 1]})`;
+                return `${beginMessage} ${name} cмена с ${beginShiftTime} ${isShiftPart || isLastShiftPart ? firstShiftDay : ''} до ${endShiftTime}${isShiftPart || isLastShiftPart ? secondShiftDay + '.' : '' + '. ' + partMessage}`;
             }
             case PERIOD_ID.SHIFT_ENDED: {
                 return `${name[0].toUpperCase() + name.slice(1)} смена ${currentDay ? 'завершилась' : 'завершается'} в ${endShiftTime}. ${partMessage}`;
