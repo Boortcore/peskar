@@ -16,3 +16,14 @@ export const MONTH_MAP = {
 };
 export const SATURDAY = 6;
 export const SUNDAY = 0;
+
+export const HOLLYDAY_SHIFT = 'HOLLYDAY_SHIFT';
+export const WEEKEND_SHIFT = 'WEEKEND_SHIFT';
+export const WEEKEND = 'WEEKEND';
+export const DAYOFF = 'DAYOFF';
+
+export const WARNING_MESSAGE = `Внимание! Данные производственного календаря не загрузились! Некоторые праздничные будние дни будут считаться рабочими днями!
+Некоторые рабочие субботы и воскресенья будут учитываться как нерабочие.`;
+
+export const COLORS_KEY_LOCALSTORAGE = 'schedule-days-colors';
+export const SELECTED_USER_KEY_LOCAL_STORAGE = 'selected-user';

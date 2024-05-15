@@ -1,30 +1,56 @@
 import './styles.css';
 import { getProductionCalendarInfo } from './get-production-calendar-info';
-import { App } from './app';
-const scheduleInfo = [
-    { name: 'дневная', value: [new Date(2022, 6, 20, 8, 0, 0, 0), new Date(2022, 6, 20, 20, 0, 0, 0)] },
-    { name: 'ночная', value: [new Date(2022, 6, 21, 20, 0, 0, 0), new Date(2022, 6, 22, 8, 0, 0, 0)] },
-    { name: 'выходной', value: [new Date(2022, 6, 23, 0, 0, 0, 0), new Date(2022, 6, 23, 0, 0, 0, 0)], dayOff: true },
-];
-
+import { HOLLYDAY_SHIFT, WEEKEND_SHIFT, WEEKEND, DAYOFF, WARNING_MESSAGE, COLORS_KEY_LOCALSTORAGE, SELECTED_USER_KEY_LOCAL_STORAGE } from './constants';
+import { UserSelector } from './user-selector';
+import { users } from './users';
 const COLOR = {
-    SHIFT: '#0CCA4A',
-    SHIFT_PART: 'yellow',
-    LAST_SHIFT_PART: 'orange',
-    DAYOFF: 'white',
-    HOLLYDAY_SHIFT: '#5C0029',
-    WEEKEND_SHIFT: '#2708A0',
-    WEEKEND: 'red', //'#FB4D3D',
+    0: '#0CCA4A',
+    1: '#ffff00',
+    2: '#FFA500',
+    [WEEKEND_SHIFT]: '#5C0029',
+    [HOLLYDAY_SHIFT]: '#2708A0',
+    [WEEKEND]: '#ff0000', //'#FB4D3D',
+    [DAYOFF]: '#ffffff', //'#FB4D3D',
 };
-const appContainerElement = document.querySelector('#container');
+
+const appContainerElement = document.querySelector('.app-container');
+const selectUserContainer = document.querySelector('.user-selector-container');
+
+const localStorageData = localStorage.getItem(COLORS_KEY_LOCALSTORAGE);
+const selectedUserFromLocalStorage = localStorage.getItem(SELECTED_USER_KEY_LOCAL_STORAGE) || 0;
+const colors = localStorageData ? { ...COLOR, ...JSON.parse(localStorageData) } : COLOR;
+const saveHandlers = {
+    saveColors(colors) {
+        localStorage.setItem(COLORS_KEY_LOCALSTORAGE, JSON.stringify(colors));
+    },
+};
+
+function initApp(index, prodCalendarInfo, message) {
+    const { getApp } = users[index];
+    const app = getApp(colors, saveHandlers, prodCalendarInfo, message);
+    app.init(appContainerElement);
+    return app;
+}
+
+function startApp(prodCalendarInfo, message) {
+    const start = (index) => initApp(index, prodCalendarInfo, message);
+
+    const userSelector = new UserSelector(users);
+
+    userSelector.setValue(selectedUserFromLocalStorage);
+    let app = start(selectedUserFromLocalStorage);
+
+    userSelector.setChangeListener((index) => {
+        app.destroy();
+        app = start(index);
+        localStorage.setItem(SELECTED_USER_KEY_LOCAL_STORAGE, index);
+    });
+    userSelector.init(selectUserContainer);
+}
 getProductionCalendarInfo(new Date())
     .then((prodCalendarInfo) => {
-        const app = new App(scheduleInfo, COLOR, prodCalendarInfo);
-        app.init(appContainerElement);
+        startApp(prodCalendarInfo);
     })
     .catch(() => {
-        const warningMessage = `Внимание! Данные производственного календаря не загрузились! Отображения праздничных дней на календаре не будет!
-        Некоторые рабочие субботы и воскресенья будут учитываться как нерабочие. Некоторые праздничные будние дни будут считаться рабочими днями.`;
-        const app = new App(scheduleInfo, COLOR, undefined, warningMessage);
-        app.init(appContainerElement);
+        startApp(null, WARNING_MESSAGE);
     });
