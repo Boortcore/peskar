@@ -31,18 +31,6 @@ export class ScheduleBuilder {
     constructor(scheduleInfo, productionCalendarInfo) {
         this.productionCalendarInfo = productionCalendarInfo;
         this.schedule = this.createSchedule(scheduleInfo);
-
-        return new Proxy(this, {
-            // (*)
-            set(target, prop, val) {
-                if (prop === 'productionCalendarInfo') {
-                    debugger;
-                }
-                target[prop] = val;
-
-                return true;
-            },
-        });
     }
 
     createSchedule(shiftList) {
