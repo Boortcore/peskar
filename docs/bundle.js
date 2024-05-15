@@ -12,7 +12,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   appTemplate: () => (/* binding */ appTemplate)
 /* harmony export */ });
-var appTemplate = "<form class=\"content\">\n  <fieldset class=\"fieldset\">\n    <legend>\u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u0434\u0430\u0442\u0443</legend>\n    <input type=\"date\" class=\"js-calendar daypicker\" /> \n    <span class=\"js-day-of-week day-of-week\"></span>\n    <span class=\"js-current-time current-time\"></span>\n  </fieldset>\n  <div class=\"js-chosen-day-info chosen-day-info\"></div>\n  <fieldset class=\"fieldset js-timer-fieldset\">\n  <legend></legend>\n    <div class=\"js-timer-container timer-container\"></div>\n  </fieldset>\n  <div class=\"calendar-container\"></div>\n</form>";
+var appTemplate = "<form class=\"content\">\n  <div class=\"warning-message hidden-element\"></div>\n  <fieldset class=\"fieldset\">\n\n    <legend>\u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u0434\u0430\u0442\u0443</legend>\n    <input type=\"date\" class=\"js-calendar daypicker\" /> \n    <span class=\"js-day-of-week day-of-week\"></span>\n    <span class=\"js-current-time current-time\"></span>\n  </fieldset>\n  <div class=\"js-chosen-day-info chosen-day-info\"></div>\n  <fieldset class=\"fieldset js-timer-fieldset\">\n  <legend></legend>\n    <div class=\"js-timer-container timer-container\"></div>\n  </fieldset>\n  <div class=\"calendar-container\"></div>\n</form>";
 
 /***/ }),
 
@@ -45,12 +45,15 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
 
 
 var App = /*#__PURE__*/function () {
-  function App(scheduleInfo, legendColors, productionCalendarInfo) {
+  function App(scheduleInfo, legendColors, productionCalendarInfo, warningMessage) {
     _classCallCheck(this, App);
     this.scheduleBuilder = new _schedule_builder__WEBPACK_IMPORTED_MODULE_2__.ScheduleBuilder(scheduleInfo, productionCalendarInfo);
     this.legend = new _legend__WEBPACK_IMPORTED_MODULE_5__.Legend(this.scheduleBuilder, legendColors);
     this.view = new _view__WEBPACK_IMPORTED_MODULE_3__.View();
     this.intervalId = null;
+    if (warningMessage) {
+      this.view.showWarningMessage(warningMessage);
+    }
   }
   return _createClass(App, [{
     key: "setListeners",
@@ -195,15 +198,12 @@ var Calendar = /*#__PURE__*/function () {
       for (var i = 1; i <= daysCount; i++) {
         var date = this.getDateByDayNumber(i);
         var scheduleDay = this.scheduleBuilder.getScheduleDayByDate(date);
-        var isShift = scheduleDay.isShift,
-          isLastShiftPart = scheduleDay.isLastShiftPart,
-          dayOff = scheduleDay.dayOff;
         var color = this.legend.getColor(scheduleDay);
         var day = date.getDay();
         var itemElement = row.querySelector("[data-day-index=\"".concat(day, "\"]"));
         var itemContent = i;
         itemElement.textContent = itemContent;
-        itemElement.style.backgroundColor = color;
+        itemElement.style.background = color;
         if (day === _constants_js__WEBPACK_IMPORTED_MODULE_2__.SUNDAY) {
           this.contentElement.append(row);
           row = i < daysCount ? this.createRow() : null;
@@ -378,21 +378,38 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 
-var COLOR = {
-  SHIFT: 'green',
-  SHIFT_PART: 'yellow',
-  LAST_SHIFT_PART: 'orange',
-  DAYOFF: 'white',
-  SHIFT_ON_UNWORKING_DAY: 'blue'
-};
+var GRADIENT_PERCENT = '70%';
 var Legend = /*#__PURE__*/function () {
   function Legend(sheduleBuilder, colors) {
     _classCallCheck(this, Legend);
     this.color = colors;
     this.sheduleBuilder = sheduleBuilder;
-    this.element = this.getElement();
+    this.template = this.getTemplate();
+    this.element = this.getElement(this.template);
   }
   return _createClass(Legend, [{
+    key: "getTemplate",
+    value: function getTemplate() {
+      var _this = this;
+      return "<div class=\"legend\">\n            <div class=\"legend__header\">\u041B\u0435\u0433\u0435\u043D\u0434\u0430</div>\n            ".concat(this.sheduleBuilder.schedule.map(function (schduleDay) {
+        var name = schduleDay.name,
+          dayOff = schduleDay.dayOff,
+          isShiftPart = schduleDay.isShiftPart,
+          isShift = schduleDay.isShift,
+          isLastShiftPart = schduleDay.isLastShiftPart,
+          beginShiftTime = schduleDay.beginShiftTime,
+          endShiftTime = schduleDay.endShiftTime;
+        var message = "".concat(name[0].toUpperCase() + name.slice(1), " ").concat(!dayOff ? 'смена ' : '');
+        if (isShiftPart || isShift) {
+          message += " c ".concat(beginShiftTime);
+        }
+        if (isLastShiftPart || isShift) {
+          message += " \u0434\u043E ".concat(endShiftTime);
+        }
+        return "<p class=\"legend__item\">\n                        <span class=\"legend__icon\" style=\"background:".concat(_this.getColor(schduleDay), "\"></span> - ").concat(message, " \n                    </p>");
+      }).join(''), " \n                <p class=\"legend__item\">\n                    <span class=\"legend__icon\" style=\"background:").concat(this.getIconGradiend(this.HOLLYDAY_SHIFT), "\"></span> - \u0421\u043C\u0435\u043D\u0430 \u0432 \u043F\u0440\u0430\u0437\u0434\u043D\u0438\u0447\u043D\u044B\u0439 \u0434\u0435\u043D\u044C\n                </p>\n                <p class=\"legend__item\">\n                    <span class=\"legend__icon\" style=\"background:").concat(this.getIconGradiend(this.WEEKEND_SHIFT), "\"></span> - \u0421\u043C\u0435\u043D\u0430 \u0432 \u0441\u0443\u0431\u0431\u043E\u0442\u0443 \u0438\u043B\u0438 \u0432\u043E\u0441\u043A\u0440\u0435\u0441\u0435\u043D\u044C\u0435\n                </p>\n                <p class=\"legend__item\">\n                    <span class=\"legend__icon\" style=\"background:").concat(this.WEEKEND, "\"></span> - \u041D\u0435\u0440\u0430\u0431\u043E\u0447\u0438\u0435 \u0441\u0443\u0431\u0431\u043E\u0442\u0430 \u0438 \u0432\u043E\u0441\u043A\u0440\u0435\u0441\u0435\u043D\u044C\u0435\n                </p>\n        </div>");
+    }
+  }, {
     key: "HOLLYDAY_SHIFT",
     get: function get() {
       return this.color.HOLLYDAY_SHIFT || 'pink';
@@ -405,7 +422,7 @@ var Legend = /*#__PURE__*/function () {
   }, {
     key: "SHIFT",
     get: function get() {
-      return this.color.SHIFT || 'yellow';
+      return this.color.SHIFT || 'green';
     }
   }, {
     key: "SHIFT_PART",
@@ -440,46 +457,56 @@ var Legend = /*#__PURE__*/function () {
       if (isWeekEnd && dayOff) {
         return this.WEEKEND;
       }
-      if (isHollyDay && (isShiftPart || isLastShiftPart || isShift)) {
-        return this.HOLLYDAY_SHIFT;
+      // При отсутствии данных API isHollyDay будет всегда иметь значение false
+      if (isHollyDay && isShift) {
+        return this.getGradient(this.SHIFT, this.HOLLYDAY_SHIFT);
       }
-      if (isWorkingDay === false && (isShiftPart || isLastShiftPart || isShift)) {
-        return this.WEEKEND_SHIFT;
+      if (isHollyDay && isShiftPart) {
+        return this.getGradient(this.SHIFT_PART, this.HOLLYDAY_SHIFT);
+      }
+      if (isHollyDay && isLastShiftPart) {
+        return this.getGradient(this.LAST_SHIFT_PART, this.HOLLYDAY_SHIFT);
+      }
+      // isWorkingDay имеет значение undefined при формировании цвета иконок легенды, поэтому требуется cтрогая проверка на булево значение false
+      // Почему не используем !isWeekEnd: в производственном календаре суббота или воскресенье могут быть рабочим днём. isWokingDay формируется на основе данных API.
+      // Без загруженных данных isWorkingDay === !isWeekEnd всегда. С данными от сервера рабочий день может быть субботой или воскресеньем.
+      if (isWorkingDay === false && isShiftPart) {
+        return this.getGradient(this.SHIFT_PART, this.WEEKEND_SHIFT);
+      }
+      if (isWorkingDay === false && isLastShiftPart) {
+        return this.getGradient(this.LAST_SHIFT_PART, this.WEEKEND_SHIFT);
+      }
+      if (isWorkingDay === false && isShift) {
+        return this.getGradient(this.SHIFT, this.WEEKEND_SHIFT);
       }
       if (isShift) {
         return this.SHIFT;
       }
       if (isShiftPart) {
-        return this.color.SHIFT_PART || 'yellow';
+        return this.SHIFT_PART;
       }
       if (isLastShiftPart) {
-        return this.color.LAST_SHIFT_PART || 'orange';
+        return this.LAST_SHIFT_PART;
       }
       if (dayOff) {
-        return this.color.DAYOFF || 'white';
+        return this.DAYOFF;
       }
     }
   }, {
+    key: "getGradient",
+    value: function getGradient(startColor, endColor) {
+      var percent = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : GRADIENT_PERCENT;
+      return "linear-gradient(to bottom right, ".concat(startColor, " ").concat(percent, ", ").concat(endColor, " ").concat(GRADIENT_PERCENT, " 100%)");
+    }
+  }, {
+    key: "getIconGradiend",
+    value: function getIconGradiend(endColor) {
+      return this.getGradient('white', endColor, '40%');
+    }
+  }, {
     key: "getElement",
-    value: function getElement() {
-      var _this = this;
-      return (0,_helpers__WEBPACK_IMPORTED_MODULE_0__.createElement)("<div class=\"legend\">\n          <div class=\"legend__header\">\u041B\u0435\u0433\u0435\u043D\u0434\u0430</div>\n            ".concat(this.sheduleBuilder.schedule.map(function (schduleDay) {
-        var name = schduleDay.name,
-          dayOff = schduleDay.dayOff,
-          isShiftPart = schduleDay.isShiftPart,
-          isLastShiftPart = schduleDay.isLastShiftPart,
-          beginShiftTime = schduleDay.beginShiftTime,
-          endShiftTime = schduleDay.endShiftTime,
-          isWeekEnd = schduleDay.isWeekEnd;
-        var message = "".concat(name[0].toUpperCase() + name.slice(1), " ").concat(!dayOff ? 'смена ' : '');
-        if (isShiftPart) {
-          message += " c ".concat(beginShiftTime);
-        }
-        if (isLastShiftPart) {
-          message += " \u0434\u043E ".concat(endShiftTime);
-        }
-        return "<p class=\"legend__item\">\n                      <span class=\"legend__icon\" style=\"background:".concat(_this.getColor(schduleDay), "\"></span> - ").concat(message, " \n                    </p>");
-      }).join(''), " \n              <p class=\"legend__item\">\n                <span class=\"legend__icon\" style=\"background:").concat(this.HOLLYDAY_SHIFT, "\"></span> - \u0421\u043C\u0435\u043D\u0430 \u0432 \u043F\u0440\u0430\u0437\u0434\u043D\u0438\u0447\u043D\u044B\u0439 \u0434\u0435\u043D\u044C\n              </p>\n              <p class=\"legend__item\">\n                <span class=\"legend__icon\" style=\"background:").concat(this.WEEKEND_SHIFT, "\"></span> - \u0421\u043C\u0435\u043D\u0430 \u0432 \u0441\u0443\u0431\u0431\u043E\u0442\u0443 \u0438\u043B\u0438 \u0432\u043E\u0441\u043A\u0440\u0435\u0441\u0435\u043D\u044C\u0435\n              </p>\n     \n        </div>"));
+    value: function getElement(template) {
+      return (0,_helpers__WEBPACK_IMPORTED_MODULE_0__.createElement)(template);
       // <p class="legend__item"><b class="legend__asterisk">*</b> - Вечером будет пить</p>
       // <p class="legend__item"><b class="legend__asterisk">**</b> - Возможно будет пить с обеда</p>
     }
@@ -732,17 +759,16 @@ var ScheduleBuilder = /*#__PURE__*/function () {
   }, {
     key: "getScheduleDayByDate",
     value: function getScheduleDayByDate(date) {
-      var _this$productionCalen;
+      var _this$productionCalen, _this$productionCalen2;
       var infoLength = this.schedule.length;
       var dayNumberSinceStartYear = (0,_time_helpers__WEBPACK_IMPORTED_MODULE_0__.getDayNumberSinceStartYear)(date);
       var scheduleDay = this.schedule.find(function (dayInfo) {
         return (dayNumberSinceStartYear - dayInfo.numberDay) % infoLength === 0;
       });
-      var isWorkingDay = (_this$productionCalen = this.productionCalendarInfo) === null || _this$productionCalen === void 0 ? void 0 : _this$productionCalen[(0,_time_helpers__WEBPACK_IMPORTED_MODULE_0__.formatDate)(date)];
       var dayOfWeek = date.getDay();
       var isWeekEnd = dayOfWeek === _constants__WEBPACK_IMPORTED_MODULE_1__.SATURDAY || dayOfWeek === _constants__WEBPACK_IMPORTED_MODULE_1__.SUNDAY;
-      // isWorkingDay может иметь значение undefined, если данные из API не подгрузились.
-      var isHollyDay = isWorkingDay === false && !isWeekEnd;
+      var isWorkingDay = (_this$productionCalen = (_this$productionCalen2 = this.productionCalendarInfo) === null || _this$productionCalen2 === void 0 ? void 0 : _this$productionCalen2[(0,_time_helpers__WEBPACK_IMPORTED_MODULE_0__.formatDate)(date)]) !== null && _this$productionCalen !== void 0 ? _this$productionCalen : !isWeekEnd;
+      var isHollyDay = !isWorkingDay && !isWeekEnd;
       return getScheduleDayWithTime(date, _objectSpread(_objectSpread({}, scheduleDay), {}, {
         isWorkingDay: isWorkingDay,
         isHollyDay: isHollyDay,
@@ -912,6 +938,13 @@ var View = /*#__PURE__*/function () {
     this.currentTimeElement = this.element.querySelector('.js-current-time');
   }
   return _createClass(View, [{
+    key: "showWarningMessage",
+    value: function showWarningMessage(message) {
+      var warningMessageElement = this.element.querySelector('.warning-message');
+      warningMessageElement.textContent = message;
+      warningMessageElement.classList.remove('hidden-element');
+    }
+  }, {
     key: "setTimerValue",
     value: function setTimerValue(seconds) {
       this.timerContainer.textContent = (0,_time_helpers__WEBPACK_IMPORTED_MODULE_0__.getStringTimeBySeconds)(seconds);
@@ -1048,12 +1081,18 @@ ___CSS_LOADER_EXPORT___.push([module.id, `#container {
     display: flex;
     justify-content: space-around;
     flex-wrap: nowrap;
+    cursor: pointer;
+    min-height: 35px;
 }
-
+.calendar__row--main {
+    cursor: auto;
+}
 .calendar__row-item {
     border: 1px solid gray;
     flex: 1 1 0px;
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .calendar__row-item--weekend {
@@ -1103,7 +1142,16 @@ ___CSS_LOADER_EXPORT___.push([module.id, `#container {
 .legend__asterisk {
     font-size: 30px !important;
 }
-`, "",{"version":3,"sources":["webpack://./src/styles.css"],"names":[],"mappings":"AAAA;IACI,aAAa;IACb,uBAAuB;IACvB,uBAAuB;AAC3B;;AAEA;IACI,sBAAsB;IACtB,aAAa;IACb,aAAa;IACb,mBAAmB;IACnB,uBAAuB;IACvB,sBAAsB;IACtB,eAAe;IACf,uBAAuB;IACvB,gBAAgB;IAChB,YAAY;AAChB;;AAEA;;;IAGI,eAAe;IACf,sBAAsB;IACtB,mBAAmB;IACnB,iBAAiB;IACjB,kBAAkB;IAClB,WAAW;AACf;;AAEA;;IAEI,mBAAmB;IACnB,iBAAiB;AACrB;;AAEA;IACI,sBAAsB;IACtB,kBAAkB;IAClB,mBAAmB;AACvB;;AAEA;IACI,sBAAsB;IACtB,mBAAmB;IACnB,aAAa;IACb,eAAe;AACnB;;AAEA;IACI,aAAa;AACjB;;AAEA;IACI,eAAe;IACf,mBAAmB;AACvB;AACA;IACI,kBAAkB;IAClB,SAAS;AACb;AACA;IACI,sBAAsB;AAC1B;AACA;IACI,aAAa;IACb,6BAA6B;IAC7B,iBAAiB;AACrB;;AAEA;IACI,sBAAsB;IACtB,aAAa;IACb,kBAAkB;AACtB;;AAEA;IACI,qBAAqB;AACzB;;AAEA;IACI,uBAAuB;AAC3B;;AAEA;IACI,wBAAwB;AAC5B;;AAEA;IACI,eAAe;IACf,sBAAsB;IACtB,mBAAmB;IACnB,aAAa;IACb,cAAc;IACd,mBAAmB;AACvB;;AAEA;IACI,eAAe;IACf,iBAAiB;IACjB,kBAAkB;IAClB,mBAAmB;AACvB;;AAEA;IACI,aAAa;IACb,mBAAmB;IACnB,UAAU;IACV,WAAW;IACX,gBAAgB;AACpB;;AAEA;IACI,qBAAqB;IACrB,WAAW;IACX,YAAY;IACZ,kBAAkB;IAClB,sBAAsB;AAC1B;;AAEA;IACI,0BAA0B;AAC9B","sourcesContent":["#container {\r\n    display: flex;\r\n    justify-content: center;\r\n    align-items: flex-start;\r\n}\r\n\r\n.content {\r\n    border: 3px solid gray;\r\n    padding: 20px;\r\n    display: flex;\r\n    border-radius: 30px;\r\n    justify-content: center;\r\n    flex-direction: column;\r\n    font-size: 25px;\r\n    font-family: sans-serif;\r\n    max-width: 600px;\r\n    margin: 15px;\r\n}\r\n\r\n.daypicker,\r\n.day-of-week,\r\n.current-time {\r\n    font-size: 25px;\r\n    border: 3px solid gray;\r\n    border-radius: 30px;\r\n    padding-left: 5px;\r\n    padding-right: 5px;\r\n    margin: 5px;\r\n}\r\n\r\n.day-of-week,\r\n.current-time {\r\n    border-radius: 30px;\r\n    padding: 2px 10px;\r\n}\r\n\r\n.chosen-day-info {\r\n    border: 3px solid gray;\r\n    padding: 10px 15px;\r\n    margin-bottom: 10px;\r\n}\r\n\r\n.fieldset {\r\n    border: 3px solid gray;\r\n    margin-bottom: 20px;\r\n    display: flex;\r\n    flex-wrap: wrap;\r\n}\r\n\r\n.hidden-element {\r\n    display: none;\r\n}\r\n\r\n.calendar {\r\n    font-size: 25px;\r\n    margin-bottom: 15px;\r\n}\r\n.calendar__header {\r\n    text-align: center;\r\n    margin: 0;\r\n}\r\n.calendar__content {\r\n    border: 3px solid gray;\r\n}\r\n.calendar__row {\r\n    display: flex;\r\n    justify-content: space-around;\r\n    flex-wrap: nowrap;\r\n}\r\n\r\n.calendar__row-item {\r\n    border: 1px solid gray;\r\n    flex: 1 1 0px;\r\n    text-align: center;\r\n}\r\n\r\n.calendar__row-item--weekend {\r\n    background-color: red;\r\n}\r\n\r\n.calendar__row-item--shift {\r\n    background-color: green;\r\n}\r\n\r\n.calendar__row-item--part-shift {\r\n    background-color: yellow;\r\n}\r\n\r\n.legend {\r\n    font-size: 15px;\r\n    border: 3px solid gray;\r\n    border-radius: 30px;\r\n    padding: 20px;\r\n    margin: 0 auto;\r\n    margin-bottom: 20px;\r\n}\r\n\r\n.legend__header {\r\n    font-size: 20px;\r\n    font-weight: bold;\r\n    text-align: center;\r\n    margin-bottom: 10px;\r\n}\r\n\r\n.legend__item {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 0;\r\n    margin: 5px;\r\n    max-width: 300px;\r\n}\r\n\r\n.legend__icon {\r\n    display: inline-block;\r\n    width: 20px;\r\n    height: 20px;\r\n    margin-right: 10px;\r\n    border: 1px solid gray;\r\n}\r\n\r\n.legend__asterisk {\r\n    font-size: 30px !important;\r\n}\r\n"],"sourceRoot":""}]);
+
+.warning-message {
+    font-size: 20px;
+    padding: 15px;
+    color: red;
+    border: 3px solid gray;
+    border-radius: 30px;
+    margin-bottom: 10px;
+}
+`, "",{"version":3,"sources":["webpack://./src/styles.css"],"names":[],"mappings":"AAAA;IACI,aAAa;IACb,uBAAuB;IACvB,uBAAuB;AAC3B;;AAEA;IACI,sBAAsB;IACtB,aAAa;IACb,aAAa;IACb,mBAAmB;IACnB,uBAAuB;IACvB,sBAAsB;IACtB,eAAe;IACf,uBAAuB;IACvB,gBAAgB;IAChB,YAAY;AAChB;;AAEA;;;IAGI,eAAe;IACf,sBAAsB;IACtB,mBAAmB;IACnB,iBAAiB;IACjB,kBAAkB;IAClB,WAAW;AACf;;AAEA;;IAEI,mBAAmB;IACnB,iBAAiB;AACrB;;AAEA;IACI,sBAAsB;IACtB,kBAAkB;IAClB,mBAAmB;AACvB;;AAEA;IACI,sBAAsB;IACtB,mBAAmB;IACnB,aAAa;IACb,eAAe;AACnB;;AAEA;IACI,aAAa;AACjB;;AAEA;IACI,eAAe;IACf,mBAAmB;AACvB;AACA;IACI,kBAAkB;IAClB,SAAS;AACb;AACA;IACI,sBAAsB;AAC1B;AACA;IACI,aAAa;IACb,6BAA6B;IAC7B,iBAAiB;IACjB,eAAe;IACf,gBAAgB;AACpB;AACA;IACI,YAAY;AAChB;AACA;IACI,sBAAsB;IACtB,aAAa;IACb,aAAa;IACb,uBAAuB;IACvB,mBAAmB;AACvB;;AAEA;IACI,qBAAqB;AACzB;;AAEA;IACI,uBAAuB;AAC3B;;AAEA;IACI,wBAAwB;AAC5B;;AAEA;IACI,eAAe;IACf,sBAAsB;IACtB,mBAAmB;IACnB,aAAa;IACb,cAAc;IACd,mBAAmB;AACvB;;AAEA;IACI,eAAe;IACf,iBAAiB;IACjB,kBAAkB;IAClB,mBAAmB;AACvB;;AAEA;IACI,aAAa;IACb,mBAAmB;IACnB,UAAU;IACV,WAAW;IACX,gBAAgB;AACpB;;AAEA;IACI,qBAAqB;IACrB,WAAW;IACX,YAAY;IACZ,kBAAkB;IAClB,sBAAsB;AAC1B;;AAEA;IACI,0BAA0B;AAC9B;;AAEA;IACI,eAAe;IACf,aAAa;IACb,UAAU;IACV,sBAAsB;IACtB,mBAAmB;IACnB,mBAAmB;AACvB","sourcesContent":["#container {\r\n    display: flex;\r\n    justify-content: center;\r\n    align-items: flex-start;\r\n}\r\n\r\n.content {\r\n    border: 3px solid gray;\r\n    padding: 20px;\r\n    display: flex;\r\n    border-radius: 30px;\r\n    justify-content: center;\r\n    flex-direction: column;\r\n    font-size: 25px;\r\n    font-family: sans-serif;\r\n    max-width: 600px;\r\n    margin: 15px;\r\n}\r\n\r\n.daypicker,\r\n.day-of-week,\r\n.current-time {\r\n    font-size: 25px;\r\n    border: 3px solid gray;\r\n    border-radius: 30px;\r\n    padding-left: 5px;\r\n    padding-right: 5px;\r\n    margin: 5px;\r\n}\r\n\r\n.day-of-week,\r\n.current-time {\r\n    border-radius: 30px;\r\n    padding: 2px 10px;\r\n}\r\n\r\n.chosen-day-info {\r\n    border: 3px solid gray;\r\n    padding: 10px 15px;\r\n    margin-bottom: 10px;\r\n}\r\n\r\n.fieldset {\r\n    border: 3px solid gray;\r\n    margin-bottom: 20px;\r\n    display: flex;\r\n    flex-wrap: wrap;\r\n}\r\n\r\n.hidden-element {\r\n    display: none;\r\n}\r\n\r\n.calendar {\r\n    font-size: 25px;\r\n    margin-bottom: 15px;\r\n}\r\n.calendar__header {\r\n    text-align: center;\r\n    margin: 0;\r\n}\r\n.calendar__content {\r\n    border: 3px solid gray;\r\n}\r\n.calendar__row {\r\n    display: flex;\r\n    justify-content: space-around;\r\n    flex-wrap: nowrap;\r\n    cursor: pointer;\r\n    min-height: 35px;\r\n}\r\n.calendar__row--main {\r\n    cursor: auto;\r\n}\r\n.calendar__row-item {\r\n    border: 1px solid gray;\r\n    flex: 1 1 0px;\r\n    display: flex;\r\n    justify-content: center;\r\n    align-items: center;\r\n}\r\n\r\n.calendar__row-item--weekend {\r\n    background-color: red;\r\n}\r\n\r\n.calendar__row-item--shift {\r\n    background-color: green;\r\n}\r\n\r\n.calendar__row-item--part-shift {\r\n    background-color: yellow;\r\n}\r\n\r\n.legend {\r\n    font-size: 15px;\r\n    border: 3px solid gray;\r\n    border-radius: 30px;\r\n    padding: 20px;\r\n    margin: 0 auto;\r\n    margin-bottom: 20px;\r\n}\r\n\r\n.legend__header {\r\n    font-size: 20px;\r\n    font-weight: bold;\r\n    text-align: center;\r\n    margin-bottom: 10px;\r\n}\r\n\r\n.legend__item {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 0;\r\n    margin: 5px;\r\n    max-width: 300px;\r\n}\r\n\r\n.legend__icon {\r\n    display: inline-block;\r\n    width: 20px;\r\n    height: 20px;\r\n    margin-right: 10px;\r\n    border: 1px solid gray;\r\n}\r\n\r\n.legend__asterisk {\r\n    font-size: 30px !important;\r\n}\r\n\r\n.warning-message {\r\n    font-size: 20px;\r\n    padding: 15px;\r\n    color: red;\r\n    border: 3px solid gray;\r\n    border-radius: 30px;\r\n    margin-bottom: 10px;\r\n}\r\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -1646,12 +1694,12 @@ var scheduleInfo = [{
   dayOff: true
 }];
 var COLOR = {
-  SHIFT: 'green',
+  SHIFT: '#0CCA4A',
   SHIFT_PART: 'yellow',
   LAST_SHIFT_PART: 'orange',
   DAYOFF: 'white',
-  HOLLYDAY_SHIFT: 'blue',
-  WEEKEND_SHIFT: '#6F58C9',
+  HOLLYDAY_SHIFT: '#5C0029',
+  WEEKEND_SHIFT: '#2708A0',
   WEEKEND: 'red' //'#FB4D3D',
 };
 var appContainerElement = document.querySelector('#container');
@@ -1659,7 +1707,8 @@ var appContainerElement = document.querySelector('#container');
   var app = new _app__WEBPACK_IMPORTED_MODULE_2__.App(scheduleInfo, COLOR, prodCalendarInfo);
   app.init(appContainerElement);
 })["catch"](function () {
-  var app = new _app__WEBPACK_IMPORTED_MODULE_2__.App(scheduleInfo, COLOR);
+  var warningMessage = "\u0412\u043D\u0438\u043C\u0430\u043D\u0438\u0435! \u0414\u0430\u043D\u043D\u044B\u0435 \u043F\u0440\u043E\u0438\u0437\u0432\u043E\u0434\u0441\u0442\u0432\u0435\u043D\u043D\u043E\u0433\u043E \u043A\u0430\u043B\u0435\u043D\u0434\u0430\u0440\u044F \u043D\u0435 \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u043B\u0438\u0441\u044C! \u041E\u0442\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u044F \u043F\u0440\u0430\u0437\u0434\u043D\u0438\u0447\u043D\u044B\u0445 \u0434\u043D\u0435\u0439 \u043D\u0430 \u043A\u0430\u043B\u0435\u043D\u0434\u0430\u0440\u0435 \u043D\u0435 \u0431\u0443\u0434\u0435\u0442!\n        \u041D\u0435\u043A\u043E\u0442\u043E\u0440\u044B\u0435 \u0440\u0430\u0431\u043E\u0447\u0438\u0435 \u0441\u0443\u0431\u0431\u043E\u0442\u044B \u0438 \u0432\u043E\u0441\u043A\u0440\u0435\u0441\u0435\u043D\u044C\u044F \u0431\u0443\u0434\u0443\u0442 \u0443\u0447\u0438\u0442\u044B\u0432\u0430\u0442\u044C\u0441\u044F \u043A\u0430\u043A \u043D\u0435\u0440\u0430\u0431\u043E\u0447\u0438\u0435. \u041D\u0435\u043A\u043E\u0442\u043E\u0440\u044B\u0435 \u043F\u0440\u0430\u0437\u0434\u043D\u0438\u0447\u043D\u044B\u0435 \u0431\u0443\u0434\u043D\u0438\u0435 \u0434\u043D\u0438 \u0431\u0443\u0434\u0443\u0442 \u0441\u0447\u0438\u0442\u0430\u0442\u044C\u0441\u044F \u0440\u0430\u0431\u043E\u0447\u0438\u043C\u0438 \u0434\u043D\u044F\u043C\u0438.";
+  var app = new _app__WEBPACK_IMPORTED_MODULE_2__.App(scheduleInfo, COLOR, undefined, warningMessage);
   app.init(appContainerElement);
 });
 })();

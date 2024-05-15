@@ -22,6 +22,11 @@ export class View {
         this.currentTimeElement = this.element.querySelector('.js-current-time');
     }
 
+    showWarningMessage(message) {
+        const warningMessageElement = this.element.querySelector('.warning-message');
+        warningMessageElement.textContent = message;
+        warningMessageElement.classList.remove('hidden-element');
+    }
     setTimerValue(seconds) {
         this.timerContainer.textContent = getStringTimeBySeconds(seconds);
     }

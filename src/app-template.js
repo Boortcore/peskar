@@ -1,5 +1,7 @@
 export const appTemplate = `<form class="content">
+  <div class="warning-message hidden-element"></div>
   <fieldset class="fieldset">
+
     <legend>Выберите дату</legend>
     <input type="date" class="js-calendar daypicker" /> 
     <span class="js-day-of-week day-of-week"></span>

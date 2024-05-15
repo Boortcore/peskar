@@ -8,12 +8,12 @@ const scheduleInfo = [
 ];
 
 const COLOR = {
-    SHIFT: 'green',
+    SHIFT: '#0CCA4A',
     SHIFT_PART: 'yellow',
     LAST_SHIFT_PART: 'orange',
     DAYOFF: 'white',
-    HOLLYDAY_SHIFT: 'blue',
-    WEEKEND_SHIFT: '#6F58C9',
+    HOLLYDAY_SHIFT: '#5C0029',
+    WEEKEND_SHIFT: '#2708A0',
     WEEKEND: 'red', //'#FB4D3D',
 };
 const appContainerElement = document.querySelector('#container');
@@ -23,6 +23,8 @@ getProductionCalendarInfo(new Date())
         app.init(appContainerElement);
     })
     .catch(() => {
-        const app = new App(scheduleInfo, COLOR);
+        const warningMessage = `Внимание! Данные производственного календаря не загрузились! Отображения праздничных дней на календаре не будет!
+        Некоторые рабочие субботы и воскресенья будут учитываться как нерабочие. Некоторые праздничные будние дни будут считаться рабочими днями.`;
+        const app = new App(scheduleInfo, COLOR, undefined, warningMessage);
         app.init(appContainerElement);
     });

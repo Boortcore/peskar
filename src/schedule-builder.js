@@ -180,11 +180,10 @@ export class ScheduleBuilder {
         const infoLength = this.schedule.length;
         const dayNumberSinceStartYear = getDayNumberSinceStartYear(date);
         const scheduleDay = this.schedule.find((dayInfo) => (dayNumberSinceStartYear - dayInfo.numberDay) % infoLength === 0);
-        const isWorkingDay = this.productionCalendarInfo?.[formatDate(date)];
         const dayOfWeek = date.getDay();
         const isWeekEnd = dayOfWeek === SATURDAY || dayOfWeek === SUNDAY;
-        // isWorkingDay может иметь значение undefined, если данные из API не подгрузились.
-        const isHollyDay = isWorkingDay === false && !isWeekEnd;
+        const isWorkingDay = this.productionCalendarInfo?.[formatDate(date)] ?? !isWeekEnd;
+        const isHollyDay = !isWorkingDay && !isWeekEnd;
         return getScheduleDayWithTime(date, { ...scheduleDay, isWorkingDay, isHollyDay, isWeekEnd });
     }
 

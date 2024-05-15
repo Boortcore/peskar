@@ -1,6 +1,6 @@
 import { createTemplate } from './calendar-template';
 import { createElement } from './helpers';
-import { MONTH_MAP, SATURDAY, SUNDAY } from './constants.js';
+import { MONTH_MAP, SUNDAY } from './constants.js';
 export class Calendar {
     constructor(year, month, scheduleBuilder, legend) {
         this.year = year;
@@ -19,14 +19,13 @@ export class Calendar {
         for (let i = 1; i <= daysCount; i++) {
             const date = this.getDateByDayNumber(i);
             const scheduleDay = this.scheduleBuilder.getScheduleDayByDate(date);
-            const { isShift, isLastShiftPart, dayOff } = scheduleDay;
             const color = this.legend.getColor(scheduleDay);
             const day = date.getDay();
             const itemElement = row.querySelector(`[data-day-index="${day}"]`);
             let itemContent = i;
 
             itemElement.textContent = itemContent;
-            itemElement.style.backgroundColor = color;
+            itemElement.style.background = color;
 
             if (day === SUNDAY) {
                 this.contentElement.append(row);

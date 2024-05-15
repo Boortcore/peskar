@@ -66,12 +66,18 @@
     display: flex;
     justify-content: space-around;
     flex-wrap: nowrap;
+    cursor: pointer;
+    min-height: 35px;
 }
-
+.calendar__row--main {
+    cursor: auto;
+}
 .calendar__row-item {
     border: 1px solid gray;
     flex: 1 1 0px;
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .calendar__row-item--weekend {
@@ -120,4 +126,13 @@
 
 .legend__asterisk {
     font-size: 30px !important;
+}
+
+.warning-message {
+    font-size: 20px;
+    padding: 15px;
+    color: red;
+    border: 3px solid gray;
+    border-radius: 30px;
+    margin-bottom: 10px;
 }

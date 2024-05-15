@@ -6,11 +6,14 @@ import { Calendar } from './calendar';
 import { Legend } from './legend';
 
 export class App {
-    constructor(scheduleInfo, legendColors, productionCalendarInfo) {
+    constructor(scheduleInfo, legendColors, productionCalendarInfo, warningMessage) {
         this.scheduleBuilder = new ScheduleBuilder(scheduleInfo, productionCalendarInfo);
         this.legend = new Legend(this.scheduleBuilder, legendColors);
         this.view = new View();
         this.intervalId = null;
+        if (warningMessage) {
+            this.view.showWarningMessage(warningMessage);
+        }
     }
 
     setListeners() {
