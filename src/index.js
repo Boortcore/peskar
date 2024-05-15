@@ -3,6 +3,7 @@ import { getProductionCalendarInfo } from './get-production-calendar-info';
 import { HOLLYDAY_SHIFT, WEEKEND_SHIFT, WEEKEND, DAYOFF, WARNING_MESSAGE, COLORS_KEY_LOCALSTORAGE, SELECTED_USER_KEY_LOCAL_STORAGE } from './constants';
 import { UserSelector } from './user-selector';
 import { users } from './users';
+import { App } from './app/app';
 const COLOR = {
     0: '#0CCA4A',
     1: '#ffff00',
@@ -26,8 +27,8 @@ const saveHandlers = {
 };
 
 function initApp(index, prodCalendarInfo, message) {
-    const { getApp } = users[index];
-    const app = getApp(colors, saveHandlers, prodCalendarInfo, message);
+    const { scheduleInfo } = users[index];
+    const app = new App(scheduleInfo, colors, saveHandlers, prodCalendarInfo, message);
     app.init(appContainerElement);
     return app;
 }
@@ -47,6 +48,7 @@ function startApp(prodCalendarInfo, message) {
     });
     userSelector.init(selectUserContainer);
 }
+
 getProductionCalendarInfo(new Date())
     .then((prodCalendarInfo) => {
         startApp(prodCalendarInfo);
