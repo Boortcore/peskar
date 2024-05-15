@@ -1,26 +1,12 @@
 import { createTemplate } from './calendar-template';
-import { createElement, formatDate, padTo2Digits } from './helpers';
-
-const MONTH_MAP = {
-    0: 'Январь',
-    1: 'Февраль',
-    2: 'Март',
-    3: 'Апрель',
-    4: 'Май',
-    5: 'Июнь',
-    6: 'Июль',
-    7: 'Август',
-    8: 'Сентябрь',
-    9: 'Октябрь',
-    10: 'Ноябрь',
-    11: 'Декабрь',
-};
+import { createElement } from './helpers';
+import { MONTH_MAP, SATURDAY, SUNDAY } from './constants.js';
 export class Calendar {
-    constructor(year, month, scheduleBuilder, info) {
-        this.info = info;
+    constructor(year, month, scheduleBuilder, legend) {
         this.year = year;
         this.month = month;
         this.scheduleBuilder = scheduleBuilder;
+        this.legend = legend;
         this.element = createElement(createTemplate(MONTH_MAP[month], year));
         this.headerElement = this.element.querySelector('.calendar__header');
         this.contentElement = this.element.querySelector('.calendar__content');
@@ -32,29 +18,22 @@ export class Calendar {
         let row = this.createRow();
         for (let i = 1; i <= daysCount; i++) {
             const date = this.getDateByDayNumber(i);
-            const { isShift, isLastShiftPart, color, isShiftPart } = this.scheduleBuilder.getScheduleDayByDate(date);
+            const scheduleDay = this.scheduleBuilder.getScheduleDayByDate(date);
+            const { isShift, isLastShiftPart, dayOff } = scheduleDay;
+            const color = this.legend.getColor(scheduleDay);
             const day = date.getDay();
             const itemElement = row.querySelector(`[data-day-index="${day}"]`);
             let itemContent = i;
 
-            if (isShift) {
-                itemContent += '*';
-            }
-            if (isLastShiftPart) {
-                itemContent += '**';
-            }
             itemElement.textContent = itemContent;
             itemElement.style.backgroundColor = color;
-            const isNotWorkingDay = this.info?.[formatDate(date)] || false;
-            if (isNotWorkingDay && (isShift || isLastShiftPart || isShiftPart)) {
-                itemElement.style.backgroundColor = 'blue';
-            }
-            if (day === 0) {
+
+            if (day === SUNDAY) {
                 this.contentElement.append(row);
-                row = this.createRow();
+                row = i < daysCount ? this.createRow() : null;
             }
         }
-        if (!row.parentElement) this.contentElement.append(row);
+        if (row) this.contentElement.append(row);
     }
 
     getDateByDayNumber(number) {

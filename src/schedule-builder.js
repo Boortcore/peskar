@@ -1,4 +1,5 @@
 import { getDayNumberSinceStartYear, getStringTimeBySeconds, formatDate, getTimeInSeconds, getDateWithoutTime, getTimeOfDate } from './time-helpers';
+import { SUNDAY, SATURDAY } from './constants';
 
 const PERIOD_ID = {
     SHIFT: 0,
@@ -26,23 +27,22 @@ const DAY_OF_WEEK_MAP = {
     6: 'субботы',
 };
 
-function getColor({ isShiftPart, isLastShiftPart, isShift, dayOff }) {
-    if (isShift) {
-        return 'green';
-    }
-    if (isShiftPart) {
-        return 'yellow';
-    }
-    if (isLastShiftPart) {
-        return 'orange';
-    }
-    if (dayOff) {
-        return 'white';
-    }
-}
 export class ScheduleBuilder {
-    constructor(scheduleInfo) {
+    constructor(scheduleInfo, productionCalendarInfo) {
+        this.productionCalendarInfo = productionCalendarInfo;
         this.schedule = this.createSchedule(scheduleInfo);
+
+        return new Proxy(this, {
+            // (*)
+            set(target, prop, val) {
+                if (prop === 'productionCalendarInfo') {
+                    debugger;
+                }
+                target[prop] = val;
+
+                return true;
+            },
+        });
     }
 
     createSchedule(shiftList) {
@@ -79,12 +79,11 @@ export class ScheduleBuilder {
                     numberDay: getDayNumberSinceStartYear(dateOfDay),
                     beginShiftTime,
                     endShiftTime,
-                    color: getColor({ isShiftPart, isLastShiftPart, isShift, dayOff }),
                 };
                 days.set(formatDate(dateOfDay), scheduleDay);
             }
         });
-        return days;
+        return [...days.values()];
     }
 
     getPeriodIdByDate(date, currentDay) {
@@ -126,8 +125,10 @@ export class ScheduleBuilder {
         const partMessage = nextScheduleDay.dayOff ? 'Следующий день - выходной.' : `Следующий день - ${nextScheduleDay.name} смена с ${nextScheduleDay.beginShiftTime}.`;
         switch (id) {
             case PERIOD_ID.SHIFT: {
-                const firstShiftDay = isShiftPart ? '' : `прошлого дня (${DAY_OF_WEEK_MAP[dayOfWeek - 1]})`;
-                const secondShiftDay = isLastShiftPart ? '' : ` следующего дня (${DAY_OF_WEEK_MAP[dayOfWeek + 1]})`;
+                const prevDay = dayOfWeek === SUNDAY ? SATURDAY : dayOfWeek - 1;
+                const nextDay = dayOfWeek === SATURDAY ? SUNDAY : dayOfWeek + 1;
+                const firstShiftDay = isShiftPart ? '' : `прошлого дня (${DAY_OF_WEEK_MAP[prevDay]})`;
+                const secondShiftDay = isLastShiftPart ? '' : ` следующего дня (${DAY_OF_WEEK_MAP[nextDay]})`;
                 return `${beginMessage} ${name} cмена с ${beginShiftTime} ${isShiftPart || isLastShiftPart ? firstShiftDay : ''} до ${endShiftTime}${isShiftPart || isLastShiftPart ? secondShiftDay + '.' : '' + '. ' + partMessage}`;
             }
             case PERIOD_ID.SHIFT_ENDED: {
@@ -176,10 +177,15 @@ export class ScheduleBuilder {
     }
 
     getScheduleDayByDate(date) {
-        const infoLength = this.schedule.size;
+        const infoLength = this.schedule.length;
         const dayNumberSinceStartYear = getDayNumberSinceStartYear(date);
-        const scheduleDay = [...this.schedule.values()].find((dayInfo) => (dayNumberSinceStartYear - dayInfo.numberDay) % infoLength === 0);
-        return getScheduleDayWithTime(date, scheduleDay);
+        const scheduleDay = this.schedule.find((dayInfo) => (dayNumberSinceStartYear - dayInfo.numberDay) % infoLength === 0);
+        const isWorkingDay = this.productionCalendarInfo?.[formatDate(date)];
+        const dayOfWeek = date.getDay();
+        const isWeekEnd = dayOfWeek === SATURDAY || dayOfWeek === SUNDAY;
+        // isWorkingDay может иметь значение undefined, если данные из API не подгрузились.
+        const isHollyDay = isWorkingDay === false && !isWeekEnd;
+        return getScheduleDayWithTime(date, { ...scheduleDay, isWorkingDay, isHollyDay, isWeekEnd });
     }
 
     getNexScheduleDay(scheduleDay, conditionCallback) {

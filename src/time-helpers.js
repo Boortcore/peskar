@@ -42,3 +42,14 @@ export function getDateWithoutTime(date, offset = 1) {
     day.setSeconds(0);
     return day;
 }
+
+export function getDateIteratorByMonthIndex(currentDate) {
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+    return function (i) {
+        let date = new Date(+currentDate);
+        date.setYear(currentYear);
+        date.setMonth(currentMonth + i);
+        return date;
+    };
+}
