@@ -4,7 +4,7 @@ const GRADIENT_PERCENT = '70%';
 const ADDITIONAL_ITEMS = [
     { description: 'Смена в праздничный день', id: HOLLYDAY_SHIFT },
     { description: 'Смена в субботу или воскресенье', id: WEEKEND_SHIFT },
-    { description: 'Нерабочие суббота и воскресенье', id: WEEKEND },
+    { description: 'Нерабочие дни', id: WEEKEND },
 ];
 
 export class Legend {
@@ -77,9 +77,7 @@ export class Legend {
 
     getColor({ isShiftPart, isLastShiftPart, isShift, dayOff, isWorkingDay, isHollyDay, isWeekEnd, dayId }) {
         const mainColor = this.colors[dayId];
-        if (isWeekEnd && dayOff) {
-            return this.WEEKEND;
-        }
+
         // При отсутствии данных API isHollyDay будет всегда иметь значение false
         if (isHollyDay && isShift) {
             return this.getGradient(mainColor, this.HOLLYDAY_SHIFT);
@@ -89,6 +87,9 @@ export class Legend {
         }
         if (isHollyDay && isLastShiftPart) {
             return this.getGradient(mainColor, this.HOLLYDAY_SHIFT);
+        }
+        if ((isWeekEnd && dayOff) || isHollyDay) {
+            return this.WEEKEND;
         }
         // isWorkingDay имеет значение undefined при формировании цвета иконок легенды, поэтому требуется cтрогая проверка на булево значение false
         // Почему не используем !isWeekEnd: в производственном календаре суббота или воскресенье могут быть рабочим днём. isWokingDay формируется на основе данных API.

@@ -534,7 +534,7 @@ var ADDITIONAL_ITEMS = [{
   description: 'Смена в субботу или воскресенье',
   id: _constants__WEBPACK_IMPORTED_MODULE_0__.WEEKEND_SHIFT
 }, {
-  description: 'Нерабочие суббота и воскресенье',
+  description: 'Нерабочие дни',
   id: _constants__WEBPACK_IMPORTED_MODULE_0__.WEEKEND
 }];
 var Legend = /*#__PURE__*/function () {
@@ -649,9 +649,7 @@ var Legend = /*#__PURE__*/function () {
         isWeekEnd = _ref3.isWeekEnd,
         dayId = _ref3.dayId;
       var mainColor = this.colors[dayId];
-      if (isWeekEnd && dayOff) {
-        return this.WEEKEND;
-      }
+
       // При отсутствии данных API isHollyDay будет всегда иметь значение false
       if (isHollyDay && isShift) {
         return this.getGradient(mainColor, this.HOLLYDAY_SHIFT);
@@ -661,6 +659,9 @@ var Legend = /*#__PURE__*/function () {
       }
       if (isHollyDay && isLastShiftPart) {
         return this.getGradient(mainColor, this.HOLLYDAY_SHIFT);
+      }
+      if (isWeekEnd && dayOff || isHollyDay) {
+        return this.WEEKEND;
       }
       // isWorkingDay имеет значение undefined при формировании цвета иконок легенды, поэтому требуется cтрогая проверка на булево значение false
       // Почему не используем !isWeekEnd: в производственном календаре суббота или воскресенье могут быть рабочим днём. isWokingDay формируется на основе данных API.
