@@ -112,20 +112,20 @@ export class ScheduleBuilder {
         const nextScheduleDay = this.getNexScheduleDay(scheduleDay);
         const beginMessageNotWhileShift = 'В этот день';
         const beginMessage = `${currentDay ? 'Идёт' : beginMessageNotWhileShift}`;
-        const partMessage = nextScheduleDay.dayOff ? 'Следующий день - выходной.' : `Следующий день - ${nextScheduleDay.name} смена с ${nextScheduleDay.beginShiftTime}.`;
+        const partMessage = nextScheduleDay.dayOff ? 'Следующий день - выходной.' : `Следующий день - ${nextScheduleDay.name} с ${nextScheduleDay.beginShiftTime}.`;
         switch (id) {
             case PERIOD_ID.SHIFT: {
                 const prevDay = dayOfWeek === SUNDAY ? SATURDAY : dayOfWeek - 1;
                 const nextDay = dayOfWeek === SATURDAY ? SUNDAY : dayOfWeek + 1;
                 const firstShiftDay = isShiftPart ? '' : `прошлого дня (${DAY_OF_WEEK_MAP[prevDay]})`;
                 const secondShiftDay = isLastShiftPart ? '' : ` следующего дня (${DAY_OF_WEEK_MAP[nextDay]})`;
-                return `${beginMessage} ${name} cмена с ${beginShiftTime} ${isShiftPart || isLastShiftPart ? firstShiftDay : ''} до ${endShiftTime}${isShiftPart || isLastShiftPart ? secondShiftDay + '.' : '' + '. ' + partMessage}`;
+                return `${beginMessage} ${name} с ${beginShiftTime} ${isShiftPart || isLastShiftPart ? firstShiftDay : ''} до ${endShiftTime}${isShiftPart || isLastShiftPart ? secondShiftDay + '.' : '' + '. ' + partMessage}`;
             }
             case PERIOD_ID.SHIFT_ENDED: {
-                return `${name[0].toUpperCase() + name.slice(1)} смена ${currentDay ? 'завершилась' : 'завершается'} в ${endShiftTime}. ${partMessage}`;
+                return `${name[0].toUpperCase() + name.slice(1)} ${currentDay ? 'завершилась' : 'завершается'} в ${endShiftTime}. ${partMessage}`;
             }
             case PERIOD_ID.BEFORE_SHIFT: {
-                return `${beginMessageNotWhileShift} ${name} смена начнётся с ${beginShiftTime} до ${endShiftTime} ${isShiftPart ? 'следующего' : 'текущего'} дня.`;
+                return `${beginMessageNotWhileShift} ${name} начнётся с ${beginShiftTime} до ${endShiftTime} ${isShiftPart ? 'следующего' : 'текущего'} дня.`;
             }
             case PERIOD_ID.DAY_OFF: {
                 return `${beginMessageNotWhileShift} ${name}. ${partMessage}`;

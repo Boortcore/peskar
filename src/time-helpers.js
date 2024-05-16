@@ -1,12 +1,22 @@
-export const padTo2Digits = (num) => {
-    return num.toString().padStart(2, '0');
-};
-export const formatDate = (date) => {
-    return [date.getFullYear(), padTo2Digits(date.getMonth() + 1), padTo2Digits(date.getDate())].join('-');
-};
+import { declOfNum } from './helpers';
+const HOURS_IN_DAY = 24;
+const daysNumberDescription = ['день', 'дня', 'дней'];
+
+export const padTo2Digits = (num) => num.toString().padStart(2, '0');
+
+export const formatDate = (date) => [date.getFullYear(), padTo2Digits(date.getMonth() + 1), padTo2Digits(date.getDate())].join('-');
+
+const padNumbersTo2Digits = (list) => list.map((item) => padTo2Digits(item)).join(':');
+
 export function getStringTimeBySeconds(secondsNumber, withoutSeconds = false) {
     const value = parseSecondForTimer(secondsNumber, withoutSeconds);
-    return value.map((item) => padTo2Digits(item)).join(':');
+    const [hours, minutes, seconds] = value;
+    if (hours < HOURS_IN_DAY) {
+        return padNumbersTo2Digits(value);
+    }
+    const daysNumber = Math.floor(hours / HOURS_IN_DAY);
+    const lastHours = hours - daysNumber * 24;
+    return `${daysNumber} ${declOfNum(daysNumber, daysNumberDescription)} ${padNumbersTo2Digits([lastHours, minutes, seconds])}`;
 }
 export const getDayNumberSinceStartYear = (date) => {
     const startedTime = +new Date(2022, 0, 1);
@@ -42,7 +52,6 @@ export function getDateWithoutTime(date, offset = 1) {
     day.setSeconds(0);
     return day;
 }
-
 export function getDateIteratorByMonthIndex(currentDate) {
     const currentMonth = currentDate.getMonth();
     const currentYear = currentDate.getFullYear();

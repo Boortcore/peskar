@@ -71,7 +71,6 @@ export class App {
         this.view.setTimerValue(secondsNumber);
         let day = null;
         this.intervalId = setInterval(() => {
-            console.log('test');
             const newDate = new Date();
             secondsNumber = this.scheduleBuilder.getTimerValueByDate(newDate, isCurrentDay);
             this.view.setTimerValue(secondsNumber);
@@ -90,9 +89,9 @@ export class App {
     setInfo(date, forToday) {
         const data = this.getContentData(date, forToday);
         this.view.setDateValue(date);
-        this.view.setCurrentTime(date, true);
+        this.view.setCurrentTime(date, forToday);
         this.view.setContentData(data);
-        this.setTimer(date, true);
+        this.setTimer(date, forToday);
     }
 
     destroy() {
