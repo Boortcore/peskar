@@ -108,17 +108,18 @@
     align-items: center;
     padding: 5px 10px;
     margin: 5px;
-    max-width: 300px;
 }
 
 .legend__icon {
     display: inline-block;
-    width: 40px;
     height: 30px;
     margin-right: 10px;
     border: none;
     padding: 0;
     box-shadow: none;
+    flex-basis: 40px;
+    flex-grow: 0;
+    flex-shrink: 0;
 }
 
 .warning-message {

@@ -55,9 +55,9 @@ export class Legend {
     }
 
     getItemTemplate({ id, description }) {
-        return `<p class="legend__item">
+        return `<div class="legend__item">
           <input type="color" class="legend__icon" value="${this.colors[id]}" data-schedule-day-index=${id}> - ${description} 
-        </p>`;
+        </div>`;
     }
 
     getTemplate() {
