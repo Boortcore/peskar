@@ -8,7 +8,7 @@ import { Legend } from '../legend/legend';
 export class App {
     constructor(scheduleInfo, legendColors, { saveColors }, productionCalendarInfo, warningMessage) {
         this.scheduleBuilder = new ScheduleBuilder(scheduleInfo, productionCalendarInfo);
-        this.legend = new Legend(this.scheduleBuilder, legendColors);
+        this.legend = new Legend(this.scheduleBuilder.schedule, legendColors);
         this.view = new View();
         this.intervalId = null;
         this.legendColors = legendColors;

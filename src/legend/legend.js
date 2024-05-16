@@ -8,9 +8,9 @@ const ADDITIONAL_ITEMS = [
 ];
 
 export class Legend {
-    constructor(sheduleBuilder, colors) {
+    constructor(schedule, colors) {
         this.colors = colors;
-        this.sheduleBuilder = sheduleBuilder;
+        this.schedule = schedule;
         this.template = this.getTemplate();
         this.element = this.getElement(this.template);
         this.pickers = [];
@@ -30,7 +30,7 @@ export class Legend {
         });
     }
     getItems() {
-        const map = this.sheduleBuilder.schedule.reduce((acc, scheduleDay) => {
+        const map = this.schedule.reduce((acc, scheduleDay) => {
             const { dayId } = scheduleDay;
             acc.set(dayId, this.getItem(scheduleDay));
             return acc;
@@ -43,8 +43,8 @@ export class Legend {
     }
 
     getItem(scheduleDay) {
-        const { name, dayOff, isShiftPart, isShift, isLastShiftPart, beginShiftTime, endShiftTime, dayId } = scheduleDay;
-        let message = `${name[0].toUpperCase() + name.slice(1)} ${!dayOff ? 'смена ' : ''}`;
+        const { name, isShiftPart, isShift, isLastShiftPart, beginShiftTime, endShiftTime, dayId } = scheduleDay;
+        let message = `${name[0].toUpperCase() + name.slice(1)}`;
         if (isShiftPart || isShift) {
             message += ` c ${beginShiftTime}`;
         }

@@ -4,7 +4,7 @@ export const users = [
         scheduleInfo: [
             { name: 'дневная смена', value: [new Date(2022, 6, 20, 8, 0, 0, 0), new Date(2022, 6, 20, 20, 0, 0, 0)] },
             { name: 'ночная смена', value: [new Date(2022, 6, 21, 20, 0, 0, 0), new Date(2022, 6, 22, 8, 0, 0, 0)] },
-            { name: 'выходной смена', value: [new Date(2022, 6, 23, 20, 0, 0, 0), new Date(2022, 6, 23, 0, 0, 0, 0)], dayOff: true },
+            { name: 'выходной', value: [new Date(2022, 6, 23, 20, 0, 0, 0), new Date(2022, 6, 23, 0, 0, 0, 0)], dayOff: true },
         ],
     },
     {

@@ -49,7 +49,7 @@ var App = /*#__PURE__*/function () {
     var saveColors = _ref.saveColors;
     _classCallCheck(this, App);
     this.scheduleBuilder = new _schedule_bulder_schedule_builder__WEBPACK_IMPORTED_MODULE_2__.ScheduleBuilder(scheduleInfo, productionCalendarInfo);
-    this.legend = new _legend_legend__WEBPACK_IMPORTED_MODULE_5__.Legend(this.scheduleBuilder, legendColors);
+    this.legend = new _legend_legend__WEBPACK_IMPORTED_MODULE_5__.Legend(this.scheduleBuilder.schedule, legendColors);
     this.view = new _view__WEBPACK_IMPORTED_MODULE_3__.View();
     this.intervalId = null;
     this.legendColors = legendColors;
@@ -527,10 +527,10 @@ var ADDITIONAL_ITEMS = [{
   id: _constants__WEBPACK_IMPORTED_MODULE_0__.WEEKEND
 }];
 var Legend = /*#__PURE__*/function () {
-  function Legend(sheduleBuilder, colors) {
+  function Legend(schedule, colors) {
     _classCallCheck(this, Legend);
     this.colors = colors;
-    this.sheduleBuilder = sheduleBuilder;
+    this.schedule = schedule;
     this.template = this.getTemplate();
     this.element = this.getElement(this.template);
     this.pickers = [];
@@ -560,7 +560,7 @@ var Legend = /*#__PURE__*/function () {
     key: "getItems",
     value: function getItems() {
       var _this = this;
-      var map = this.sheduleBuilder.schedule.reduce(function (acc, scheduleDay) {
+      var map = this.schedule.reduce(function (acc, scheduleDay) {
         var dayId = scheduleDay.dayId;
         acc.set(dayId, _this.getItem(scheduleDay));
         return acc;
@@ -580,14 +580,13 @@ var Legend = /*#__PURE__*/function () {
     key: "getItem",
     value: function getItem(scheduleDay) {
       var name = scheduleDay.name,
-        dayOff = scheduleDay.dayOff,
         isShiftPart = scheduleDay.isShiftPart,
         isShift = scheduleDay.isShift,
         isLastShiftPart = scheduleDay.isLastShiftPart,
         beginShiftTime = scheduleDay.beginShiftTime,
         endShiftTime = scheduleDay.endShiftTime,
         dayId = scheduleDay.dayId;
-      var message = "".concat(name[0].toUpperCase() + name.slice(1), " ").concat(!dayOff ? 'смена ' : '');
+      var message = "".concat(name[0].toUpperCase() + name.slice(1));
       if (isShiftPart || isShift) {
         message += " c ".concat(beginShiftTime);
       }
@@ -1161,7 +1160,7 @@ var users = [{
     name: 'ночная смена',
     value: [new Date(2022, 6, 21, 20, 0, 0, 0), new Date(2022, 6, 22, 8, 0, 0, 0)]
   }, {
-    name: 'выходной смена',
+    name: 'выходной',
     value: [new Date(2022, 6, 23, 20, 0, 0, 0), new Date(2022, 6, 23, 0, 0, 0, 0)],
     dayOff: true
   }]
