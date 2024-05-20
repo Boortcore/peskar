@@ -1,10 +1,10 @@
-import { HOLLYDAY_SHIFT, WEEKEND, WEEKEND_SHIFT } from '../constants';
+import { HOLLYDAY_SHIFT, NON_WORKING_DAY, WEEKEND_SHIFT } from '../constants';
 import { createElement } from '../helpers';
 const GRADIENT_PERCENT = '70%';
 const ADDITIONAL_ITEMS = [
     { description: 'Смена в праздничный день', id: HOLLYDAY_SHIFT },
     { description: 'Смена в субботу или воскресенье', id: WEEKEND_SHIFT },
-    { description: 'Нерабочие дни', id: WEEKEND },
+    { description: 'Нерабочие дни', id: NON_WORKING_DAY },
 ];
 
 export class Legend {
@@ -71,8 +71,8 @@ export class Legend {
     get [WEEKEND_SHIFT]() {
         return this.colors[WEEKEND_SHIFT] || 'blue';
     }
-    get [WEEKEND]() {
-        return this.colors[WEEKEND] || 'red';
+    get [NON_WORKING_DAY]() {
+        return this.colors[NON_WORKING_DAY] || 'red';
     }
 
     getColor({ isShiftPart, isLastShiftPart, isShift, dayOff, isWorkingDay, isHollyDay, isWeekEnd, dayId }) {
@@ -88,8 +88,8 @@ export class Legend {
         if (isHollyDay && isLastShiftPart) {
             return this.getGradient(mainColor, this.HOLLYDAY_SHIFT);
         }
-        if ((isWeekEnd && dayOff) || isHollyDay) {
-            return this.WEEKEND;
+        if (((isWeekEnd && dayOff) || isHollyDay) && isWorkingDay === false) {
+            return this.NON_WORKING_DAY;
         }
         // isWorkingDay имеет значение undefined при формировании цвета иконок легенды, поэтому требуется cтрогая проверка на булево значение false
         // Почему не используем !isWeekEnd: в производственном календаре суббота или воскресенье могут быть рабочим днём. isWokingDay формируется на основе данных API.

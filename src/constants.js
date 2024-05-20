@@ -19,7 +19,7 @@ export const SUNDAY = 0;
 
 export const HOLLYDAY_SHIFT = 'HOLLYDAY_SHIFT';
 export const WEEKEND_SHIFT = 'WEEKEND_SHIFT';
-export const WEEKEND = 'WEEKEND';
+export const NON_WORKING_DAY = 'NON_WORKING_DAY';
 export const DAYOFF = 'DAYOFF';
 
 export const WARNING_MESSAGE = `Внимание! Данные производственного календаря не загрузились! Некоторые праздничные будние дни будут считаться рабочими днями!

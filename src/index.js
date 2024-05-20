@@ -1,6 +1,6 @@
 import './styles.css';
 import { getProductionCalendarInfo } from './get-production-calendar-info';
-import { HOLLYDAY_SHIFT, WEEKEND_SHIFT, WEEKEND, DAYOFF, WARNING_MESSAGE, COLORS_KEY_LOCALSTORAGE, SELECTED_USER_KEY_LOCAL_STORAGE } from './constants';
+import { HOLLYDAY_SHIFT, WEEKEND_SHIFT, NON_WORKING_DAY, DAYOFF, WARNING_MESSAGE, COLORS_KEY_LOCALSTORAGE, SELECTED_USER_KEY_LOCAL_STORAGE } from './constants';
 import { UserSelector } from './user-selector';
 import { users } from './users';
 import { App } from './app/app';
@@ -17,7 +17,7 @@ const COLOR = {
     9: '#19a9fc',
     [WEEKEND_SHIFT]: '#5C0029',
     [HOLLYDAY_SHIFT]: '#2708A0',
-    [WEEKEND]: '#ff0000', //'#FB4D3D',
+    [NON_WORKING_DAY]: '#ff0000', //'#FB4D3D',
     [DAYOFF]: '#ffffff', //'#FB4D3D',
 };
 

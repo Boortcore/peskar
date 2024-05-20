@@ -385,11 +385,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   HOLLYDAY_SHIFT: () => (/* binding */ HOLLYDAY_SHIFT),
 /* harmony export */   MONTHS_COUNT: () => (/* binding */ MONTHS_COUNT),
 /* harmony export */   MONTH_MAP: () => (/* binding */ MONTH_MAP),
+/* harmony export */   NON_WORKING_DAY: () => (/* binding */ NON_WORKING_DAY),
 /* harmony export */   SATURDAY: () => (/* binding */ SATURDAY),
 /* harmony export */   SELECTED_USER_KEY_LOCAL_STORAGE: () => (/* binding */ SELECTED_USER_KEY_LOCAL_STORAGE),
 /* harmony export */   SUNDAY: () => (/* binding */ SUNDAY),
 /* harmony export */   WARNING_MESSAGE: () => (/* binding */ WARNING_MESSAGE),
-/* harmony export */   WEEKEND: () => (/* binding */ WEEKEND),
 /* harmony export */   WEEKEND_SHIFT: () => (/* binding */ WEEKEND_SHIFT)
 /* harmony export */ });
 var MONTHS_COUNT = 12;
@@ -411,7 +411,7 @@ var SATURDAY = 6;
 var SUNDAY = 0;
 var HOLLYDAY_SHIFT = 'HOLLYDAY_SHIFT';
 var WEEKEND_SHIFT = 'WEEKEND_SHIFT';
-var WEEKEND = 'WEEKEND';
+var NON_WORKING_DAY = 'NON_WORKING_DAY';
 var DAYOFF = 'DAYOFF';
 var WARNING_MESSAGE = "\u0412\u043D\u0438\u043C\u0430\u043D\u0438\u0435! \u0414\u0430\u043D\u043D\u044B\u0435 \u043F\u0440\u043E\u0438\u0437\u0432\u043E\u0434\u0441\u0442\u0432\u0435\u043D\u043D\u043E\u0433\u043E \u043A\u0430\u043B\u0435\u043D\u0434\u0430\u0440\u044F \u043D\u0435 \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u043B\u0438\u0441\u044C! \u041D\u0435\u043A\u043E\u0442\u043E\u0440\u044B\u0435 \u043F\u0440\u0430\u0437\u0434\u043D\u0438\u0447\u043D\u044B\u0435 \u0431\u0443\u0434\u043D\u0438\u0435 \u0434\u043D\u0438 \u0431\u0443\u0434\u0443\u0442 \u0441\u0447\u0438\u0442\u0430\u0442\u044C\u0441\u044F \u0440\u0430\u0431\u043E\u0447\u0438\u043C\u0438 \u0434\u043D\u044F\u043C\u0438!\n\u041D\u0435\u043A\u043E\u0442\u043E\u0440\u044B\u0435 \u0440\u0430\u0431\u043E\u0447\u0438\u0435 \u0441\u0443\u0431\u0431\u043E\u0442\u044B \u0438 \u0432\u043E\u0441\u043A\u0440\u0435\u0441\u0435\u043D\u044C\u044F \u0431\u0443\u0434\u0443\u0442 \u0443\u0447\u0438\u0442\u044B\u0432\u0430\u0442\u044C\u0441\u044F \u043A\u0430\u043A \u043D\u0435\u0440\u0430\u0431\u043E\u0447\u0438\u0435.";
 var COLORS_KEY_LOCALSTORAGE = 'schedule-days-colors';
@@ -524,7 +524,7 @@ var ADDITIONAL_ITEMS = [{
   id: _constants__WEBPACK_IMPORTED_MODULE_0__.WEEKEND_SHIFT
 }, {
   description: 'Нерабочие дни',
-  id: _constants__WEBPACK_IMPORTED_MODULE_0__.WEEKEND
+  id: _constants__WEBPACK_IMPORTED_MODULE_0__.NON_WORKING_DAY
 }];
 var Legend = /*#__PURE__*/function () {
   function Legend(schedule, colors) {
@@ -621,9 +621,9 @@ var Legend = /*#__PURE__*/function () {
       return this.colors[_constants__WEBPACK_IMPORTED_MODULE_0__.WEEKEND_SHIFT] || 'blue';
     }
   }, {
-    key: _constants__WEBPACK_IMPORTED_MODULE_0__.WEEKEND,
+    key: _constants__WEBPACK_IMPORTED_MODULE_0__.NON_WORKING_DAY,
     get: function get() {
-      return this.colors[_constants__WEBPACK_IMPORTED_MODULE_0__.WEEKEND] || 'red';
+      return this.colors[_constants__WEBPACK_IMPORTED_MODULE_0__.NON_WORKING_DAY] || 'red';
     }
   }, {
     key: "getColor",
@@ -648,8 +648,8 @@ var Legend = /*#__PURE__*/function () {
       if (isHollyDay && isLastShiftPart) {
         return this.getGradient(mainColor, this.HOLLYDAY_SHIFT);
       }
-      if (isWeekEnd && dayOff || isHollyDay) {
-        return this.WEEKEND;
+      if ((isWeekEnd && dayOff || isHollyDay) && isWorkingDay === false) {
+        return this.NON_WORKING_DAY;
       }
       // isWorkingDay имеет значение undefined при формировании цвета иконок легенды, поэтому требуется cтрогая проверка на булево значение false
       // Почему не используем !isWeekEnd: в производственном календаре суббота или воскресенье могут быть рабочим днём. isWokingDay формируется на основе данных API.
@@ -1906,7 +1906,7 @@ var COLOR = _defineProperty(_defineProperty(_defineProperty(_defineProperty({
   7: '#2ba8bc',
   8: '#ecd84a',
   9: '#19a9fc'
-}, _constants__WEBPACK_IMPORTED_MODULE_2__.WEEKEND_SHIFT, '#5C0029'), _constants__WEBPACK_IMPORTED_MODULE_2__.HOLLYDAY_SHIFT, '#2708A0'), _constants__WEBPACK_IMPORTED_MODULE_2__.WEEKEND, '#ff0000'), _constants__WEBPACK_IMPORTED_MODULE_2__.DAYOFF, '#ffffff');
+}, _constants__WEBPACK_IMPORTED_MODULE_2__.WEEKEND_SHIFT, '#5C0029'), _constants__WEBPACK_IMPORTED_MODULE_2__.HOLLYDAY_SHIFT, '#2708A0'), _constants__WEBPACK_IMPORTED_MODULE_2__.NON_WORKING_DAY, '#ff0000'), _constants__WEBPACK_IMPORTED_MODULE_2__.DAYOFF, '#ffffff');
 var appContainerElement = document.querySelector('.app-container');
 var selectUserContainer = document.querySelector('.user-selector-container');
 var localStorageData = localStorage.getItem(_constants__WEBPACK_IMPORTED_MODULE_2__.COLORS_KEY_LOCALSTORAGE);
