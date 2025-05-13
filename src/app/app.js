@@ -45,6 +45,7 @@ export class App {
         });
         this.generateCalendars(currentDate, calendarContainer);
     }
+
     generateCalendars(currentDate, container) {
         const getNextMonthDateFromCurrent = getDateIteratorByMonthIndex(currentDate);
         for (let i = 0; i < MONTHS_COUNT; i++) {
@@ -52,6 +53,7 @@ export class App {
             this.addCalendar(date, container);
         }
     }
+    
     addCalendar(date, container) {
         this.calendar = new Calendar(date.getFullYear(), date.getMonth(), this.scheduleBuilder, this.legend);
         container.append(this.calendar.element);

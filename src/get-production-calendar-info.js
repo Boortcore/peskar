@@ -1,5 +1,6 @@
 import { MONTHS_COUNT } from './constants.js';
 import { formatDate, getDateIteratorByMonthIndex } from './time-helpers';
+
 export function getProductionCalendarInfo(currentDate) {
     const promiseCollection = [];
     const getNextMonthDateFromCurrent = getDateIteratorByMonthIndex(currentDate);

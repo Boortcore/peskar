@@ -1,6 +1,7 @@
 import { getStringTimeBySeconds, formatDate, getStringTimeByDate } from '../time-helpers';
 import { createElement } from '../helpers';
 import { appTemplate } from './app-template';
+
 const DAY_WEEK = {
     0: 'Воскресенье',
     1: 'Понедельник',
@@ -27,6 +28,7 @@ export class View {
         warningMessageElement.textContent = message;
         warningMessageElement.classList.remove('hidden-element');
     }
+    
     setTimerValue(seconds) {
         this.timerContainer.textContent = getStringTimeBySeconds(seconds);
     }

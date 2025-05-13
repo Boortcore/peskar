@@ -4,6 +4,7 @@ import { HOLLYDAY_SHIFT, WEEKEND_SHIFT, NON_WORKING_DAY, DAYOFF, WARNING_MESSAGE
 import { UserSelector } from './user-selector';
 import { users } from './users';
 import { App } from './app/app';
+
 const COLOR = {
     0: '#0CCA4A',
     1: '#ffff00',
@@ -27,6 +28,7 @@ const selectUserContainer = document.querySelector('.user-selector-container');
 const localStorageData = localStorage.getItem(COLORS_KEY_LOCALSTORAGE);
 const selectedUserFromLocalStorage = localStorage.getItem(SELECTED_USER_KEY_LOCAL_STORAGE) || 0;
 const colors = localStorageData ? { ...COLOR, ...JSON.parse(localStorageData) } : COLOR;
+
 const saveHandlers = {
     saveColors(colors) {
         localStorage.setItem(COLORS_KEY_LOCALSTORAGE, JSON.stringify(colors));
@@ -44,8 +46,8 @@ function startApp(prodCalendarInfo, message) {
     const start = (index) => initApp(index, prodCalendarInfo, message);
 
     const userSelector = new UserSelector(users);
-
     userSelector.setValue(selectedUserFromLocalStorage);
+    
     let app = start(selectedUserFromLocalStorage);
 
     userSelector.setChangeListener((index) => {

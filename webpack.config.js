@@ -33,7 +33,7 @@ module.exports = {
     },
     plugins: [
         new HtmlWebpackPlugin({
-            title: 'Пескарь',
+            title: '',
             template: path.resolve(__dirname, './index.html'), // шаблон
             filename: 'index.html', // название выходного файла
         }),

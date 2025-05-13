@@ -63,6 +63,7 @@ export class Calendar {
         <div>`);
         return rowElement;
     }
+    
     createRowItem() {
         const rowElement = createElement(``);
     }

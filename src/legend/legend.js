@@ -29,6 +29,7 @@ export class Legend {
             callback({ id: picker.dataset.scheduleDayIndex, value: picker.value });
         });
     }
+    
     getItems() {
         const map = this.schedule.reduce((acc, scheduleDay) => {
             const { dayId } = scheduleDay;
@@ -122,7 +123,5 @@ export class Legend {
 
     getElement(template) {
         return createElement(template);
-        // <p class="legend__item"><b class="legend__asterisk">*</b> - Вечером будет пить</p>
-        // <p class="legend__item"><b class="legend__asterisk">**</b> - Возможно будет пить с обеда</p>
     }
 }
